@@ -1,0 +1,15 @@
+<!-- templates/index.html -->
+
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <h1>Welcome to the Video Project</h1>
+    {% if current_user.is_authenticated %}
+        <p>Hello, {{ current_user.username }}!</p>
+        <a href="{{ url_for('select_categories', round_number=1) }}">Start Experiment</a>
+    {% else %}
+        <p>Please <a href="{{ url_for('login') }}">login</a> to begin.</p>
+    {% endif %}
+{% endblock %}
