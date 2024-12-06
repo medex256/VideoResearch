@@ -1,0 +1,19 @@
+/* static/css/styles.css */
+
+body {
+    padding-top: 60px;
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #343a40;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
