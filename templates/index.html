@@ -2,14 +2,19 @@
 
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}首页{% endblock %}
 
 {% block content %}
-    <h1>Welcome to the Video Project</h1>
-    {% if current_user.is_authenticated %}
-        <p>Hello, {{ current_user.username }}!</p>
-        <a href="{{ url_for('select_categories', round_number=1) }}">Start Experiment</a>
-    {% else %}
-        <p>Please <a href="{{ url_for('login') }}">login</a> to begin.</p>
-    {% endif %}
+    <div class="text-center">
+        <h1 class="mb-4">欢迎来到我们的短视频实验平台</h1>
+        <p class="lead">
+            假设您正在使用自己的手机浏览短视频。请您首先选择三类想要观看的视频类型，以便平台为您推荐符合您兴趣的短视频。您可以在后续实验过程中自主决定是否观看每一个视频，在此期间您的选择不受任何限制。
+        </p>
+        <p class="mb-4">
+            当某一个视频播放结束时，会自动跳转至下一个视频。如果你对某一个视频不感兴趣，点击“下一个”按钮跳过即可。在观看的过程中，您可以通过点击“喜欢”、“不喜欢”等按钮对每一个视频进行评价，或者在评论区留下您自己的评语。在观看完所有视频后，您需要复制平台给出的参与码，返回到原本的问卷页面并将参与码粘贴至相应的位置，然后完成问卷中的剩余问题来结束该研究。如果你不小心关闭了这个页面，请刷新重进。
+        </p>
+        <form action="{{ url_for('start') }}" method="POST">
+            <button type="submit" class="btn btn-primary btn-lg">开始</button>
+        </form>
+    </div>
 {% endblock %}

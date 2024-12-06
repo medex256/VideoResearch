@@ -1,13 +1,15 @@
 from config import db
 from sqlalchemy.orm import declared_attr, declarative_mixin
 
+
+
 from flask_login import UserMixin
 from datetime import datetime
 import uuid
 
 
-class Participant(db.Model):
-    participant_number = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
+class Participant(UserMixin, db.Model):
+    participant_number = db.Column(db.String(4), primary_key=True, default=lambda: '0000')
     group_number = db.Column(db.Integer, nullable=False)  # Assigned group (1-7)
     # Relationships
     preferences = db.relationship('Preference', backref='participant', lazy=True)
@@ -16,6 +18,9 @@ class Participant(db.Model):
     message_times = db.relationship('MessageTime', backref='participant', lazy=True)
     watching_times = db.relationship('WatchingTime', backref='participant', lazy=True)
     consistency_answers = db.relationship('ConsistencyAnswer', backref='participant', lazy=True)
+
+    def get_id(self):
+        return self.participant_number
 
 class VideoCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
