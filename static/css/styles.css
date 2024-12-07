@@ -17,3 +17,25 @@ h1 {
     background-color: #007bff;
     border-color: #007bff;
 }
+
+
+
+
+.label_cat {
+    min-width: 150px;
+    font-weight: bold;
+    margin-right: 1rem; /* Equivalent to me-3 */
+    font-size: 1.25rem; /* Equivalent to fs-5 */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.slider {
+    height: 8px;
+    width: 65%;
+}
+
+.value-display {
+    font-weight: bold;
+    width: 30px;
+    font-size: 1.25rem; /* Equivalent to fs-4 */
+}

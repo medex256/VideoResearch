@@ -1,12 +1,12 @@
-
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+from flask import Flask, jsonify, render_template, redirect, url_for, request, flash, session
 from flask_login import LoginManager, login_user, login_required, current_user
 from config import app, db
 from functools import wraps
+from collections import Counter
 from models import Participant,VideoCategory,Video,Preference
 import random
-import uuid
-
+import re
+import random
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -58,25 +58,28 @@ def start():
     return redirect(url_for('select_categories'))
 
 
-
-
-
-
 @app.route('/submit_categories', methods=['POST'])
 @login_required_custom
 def submit_categories():
-    selected_ids = request.form.getlist('categories')  # Get list of selected category IDs
-    if len(selected_ids) != 3:
-        flash('请确保选择了三个类别并为其分配排名。', 'danger')
-        return redirect(url_for('select_categories'))
-    
+    # Extract category IDs and their corresponding ratings
+    selected_ids = []
     ratings = []
-    for category_id in selected_ids:
-        rating = request.form.get(f'rating_{category_id}')
-        if not rating or not rating.isdigit():
-            flash('请为所有选择的类别分配有效的排名。', 'danger')
-            return redirect(url_for('select_categories'))
-        ratings.append(int(rating))
+    
+    for key, value in request.form.items():
+        if key.startswith('rating_'):
+            try:
+                category_id = int(key.split('_')[1])
+                rating = int(value)
+                selected_ids.append(category_id)
+                ratings.append(rating)
+            except (IndexError, ValueError):
+                flash('无效的类别ID或评分。', 'danger')
+                return redirect(url_for('select_categories'))
+    
+    # Validate that exactly three categories are selected
+    if len(selected_ids) != 3:
+        flash('请确保选择了三个类别并为其分配评分。', 'danger')
+        return redirect(url_for('select_categories'))
     
     # Validate that all ratings are between 1 and 10
     if not all(1 <= rating <= 10 for rating in ratings):
@@ -94,14 +97,14 @@ def submit_categories():
             for category_id, rating in zip(selected_ids, ratings):
                 preference = Preference(
                     participant_number=participant_number,
-                    round_number=1,  #first round
+                    round_number=1,  # first round
                     category_id=category_id,
                     rating=rating
                 )
                 db.session.add(preference)
             db.session.commit()
             flash('类别已成功提交。', 'success')
-            return redirect(url_for('next_step'))  # Test
+            return redirect(url_for('next_step'))
         except Exception as e:
             db.session.rollback()
             flash('提交时发生错误，请稍后再试。', 'danger')
@@ -117,8 +120,74 @@ def submit_categories():
 @app.route('/next_step')
 @login_required_custom
 def next_step():
-    #For Testing
-    return render_template('next_step.html')
+    participant_number = session.get('participant_number')
+    preferences = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
+    selected_categories = [pref.category.name for pref in preferences]
+    return render_template('next_step.html', selected_categories=selected_categories)
+
+# app.py
+
+# ... existing imports and code ...
+
+
+
+@app.route('/api/videos')
+@login_required_custom
+def get_videos():
+    categories = request.args.get('categories')
+    limit = 20  # Total number of videos
+    category_names = categories.split(',')
+    
+    # Get the ratings for the selected categories
+    participant_number = session.get('participant_number')
+    preferences = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
+    category_ratings = {pref.category.name: pref.rating for pref in preferences}
+    
+    # Total ratings sum
+    total_ratings = sum(category_ratings.values())
+    
+    # Calculate number of videos per category
+    videos_per_category = {}
+    total_videos_assigned = 0
+    for category_name in category_names:
+        rating = category_ratings.get(category_name, 0)
+        num_videos = round((rating / total_ratings) * limit)
+        videos_per_category[category_name] = num_videos
+        total_videos_assigned += num_videos
+
+    # Adjust if total_videos_assigned is not equal to limit due to rounding
+    difference = limit - total_videos_assigned
+    if difference != 0:
+        # Adjust the category with the highest rating
+        max_category = max(category_ratings, key=category_ratings.get)
+        videos_per_category[max_category] += difference
+
+    # Get category IDs
+    categories = VideoCategory.query.filter(VideoCategory.name.in_(category_names)).all()
+    category_ids = {cat.name: cat.id for cat in categories}
+
+    # Collect videos
+    videos_data = []
+    for category_name, num_videos in videos_per_category.items():
+        cat_id = category_ids[category_name]
+        videos_in_category = Video.query.filter_by(category_id=cat_id).all()
+        if len(videos_in_category) == 0:
+            continue
+        selected_videos = random.sample(videos_in_category, min(num_videos, len(videos_in_category)))
+        for video in selected_videos:
+            # Extract video ID from the URL
+            match = re.search(r'/video/(\d+)', video.url)
+            if match:
+                video_id = match.group(1)
+                embed_url = f"https://open.douyin.com/player/video?vid={video_id}&autoplay=0"
+                videos_data.append({
+                    'title': video.title,
+                    'link': embed_url
+                })
+    # Shuffle the videos
+    random.shuffle(videos_data)
+    
+    return jsonify({'videos': videos_data})
 
 
 @app.route('/select_categories')
@@ -126,6 +195,15 @@ def next_step():
 def select_categories():
     categories = VideoCategory.query.all()
     return render_template('select_categories.html', categories=categories)
+
+
+
+@app.route('/test_embed')
+@login_required_custom
+def test_embed():
+    # Example Douyin video URL
+    douyin_video_url = "https://open.douyin.com/player/video?vid=7290445158779276601&autoplay=0"
+    return render_template('test_embed.html', video_url=douyin_video_url)
 
 
 if __name__ =="__main__":

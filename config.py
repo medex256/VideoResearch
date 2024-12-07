@@ -11,9 +11,7 @@ app.secret_key = "secret-key-here"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///mydatabase.db"
 
 
-
-
-app.config["AQLADCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app,db)
