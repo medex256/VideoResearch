@@ -96,7 +96,7 @@
     </style>
 </head>
 <body>
-    <div id="progress">1 / 20</div>
+    <div id="progress">为您推荐: 1 / 20</div>
 
     <div class="video-container" id="videoContainer"></div>
     
@@ -134,7 +134,7 @@
                 if (videos.length > 0) {
                     showVideo(currentIndex);
                     updateProgress();
-                    loadComments(videos[currentIndex].id);
+                    //loadComments(videos[currentIndex].id);
                 } else {
                     document.getElementById('videoContainer').innerHTML = '<p>暂无视频可显示。</p>';
                     document.getElementById('nextBtn').disabled = true;
@@ -153,7 +153,7 @@
             document.getElementById('prevBtn').disabled = index === 0;
             document.getElementById('nextBtn').disabled = index === videos.length - 1;
             updateProgress();
-            loadComments(videos[index].id);
+            //loadComments(videos[index].id);
             resetWatchTime();
             trackWatchTime();
         }
@@ -164,7 +164,7 @@
 
         document.getElementById('prevBtn').addEventListener('click', () => {
             if (currentIndex > 0) {
-                //finalizeWatchTime();
+                //finalizeCurrentWatchTime();
                 currentIndex--;
                 showVideo(currentIndex);
             }
@@ -172,7 +172,7 @@
 
         document.getElementById('nextBtn').addEventListener('click', () => {
             if (currentIndex < videos.length - 1) {
-                //finalizeWatchTime();
+                //finalizeCurrentWatchTime();
                 currentIndex++;
                 showVideo(currentIndex);
             }

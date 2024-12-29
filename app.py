@@ -125,9 +125,32 @@ def next_step():
     selected_categories = [pref.category.name for pref in preferences]
     return render_template('video_viewing_1.html', selected_categories=selected_categories)
 
-# app.py
 
-# ... existing imports and code ...
+
+
+@app.route('/api/record_watch_time', methods=['POST'])
+@login_required_custom
+def record_watch_time():
+    data = request.get_json()
+    video_id = data.get('video_id')
+    watch_duration = data.get('watch_duration')
+
+    if not video_id or watch_duration is None:
+        return jsonify({'status': 'fail', 'message': 'Invalid data'}), 400
+
+    participant_number = session.get('participant_number')
+    interaction = WatchingTime(
+        participant_number=participant_number,
+        round_number=1,  # Adjust if tracking multiple rounds
+        time_spent=watch_duration
+    )
+    try:
+        db.session.add(interaction)
+        db.session.commit()
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'fail', 'message': 'Database error'}), 500
 
 
 
