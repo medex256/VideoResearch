@@ -11,27 +11,28 @@
             background-color: #f8f9fa;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden; /* Prevent body scrollbars */
+            min-height: 100vh;
         }
+        
         #progress {
             font-size: 1.2rem;
             margin: 10px 0;
             text-align: center;
         }
+        
         .video-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden; /* Hide overflow to remove sliders */
-            position: relative;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin: 1rem 0;
         }
         .video-container iframe {
-            width: auto;
-            height: 200%;
-            aspect-ratio: 9 / 16; /* Maintain vertical aspect ratio */
+            width: 360px;
+            height: 640px;
             border: none;
+            object-fit: cover;
         }
         #navigation {
             text-align: center;
@@ -53,9 +54,9 @@
             font-size: 2rem;
         }
         .comments-section {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 0 10px;
+            padding: 0 20px;
             flex-shrink: 0; /* Prevent shrinking */
         }
         .comments-section h3 {
@@ -68,7 +69,8 @@
         }
         .comments-section textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 150px;
+            min-width: 460px;
             padding: 10px;
             font-size: 1rem;
             margin-bottom: 10px;
@@ -162,7 +164,7 @@
 
         document.getElementById('prevBtn').addEventListener('click', () => {
             if (currentIndex > 0) {
-                finalizeWatchTime();
+                //finalizeWatchTime();
                 currentIndex--;
                 showVideo(currentIndex);
             }
@@ -170,7 +172,7 @@
 
         document.getElementById('nextBtn').addEventListener('click', () => {
             if (currentIndex < videos.length - 1) {
-                finalizeWatchTime();
+                //finalizeWatchTime();
                 currentIndex++;
                 showVideo(currentIndex);
             }

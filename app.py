@@ -117,13 +117,13 @@ def submit_categories():
 
 
 
-@app.route('/next_step')
+@app.route('/video_viewing_1')
 @login_required_custom
 def next_step():
     participant_number = session.get('participant_number')
     preferences = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
     selected_categories = [pref.category.name for pref in preferences]
-    return render_template('next_step.html', selected_categories=selected_categories)
+    return render_template('video_viewing_1.html', selected_categories=selected_categories)
 
 # app.py
 
