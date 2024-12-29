@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_user, login_required, current_user
 from config import app, db
 from functools import wraps
 from collections import Counter
-from models import Participant,VideoCategory,Video,Preference
+from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime
 import random
 import re
 import random
@@ -127,6 +127,102 @@ def next_step():
 
 
 
+# ...existing code...
+
+# ... existing imports and code ...
+
+@app.route('/api/user_interaction', methods=['POST'])
+@login_required_custom
+def user_interaction():
+    data = request.get_json()
+    video_id = data.get('video_id')
+    action = data.get('action')        # 'like', 'dislike', 'star', 'star_remove', 'remove_like', 'remove_dislike', 'comment'
+    comment_text = data.get('comment') # Text if action == 'comment'
+
+    if not video_id or not action:
+        return jsonify({'success': False, 'message': 'Missing parameters'}), 400
+
+    participant_number = session.get('participant_number')
+
+    # Handle 'like' and 'dislike' actions
+    if action in ['like', 'dislike']:
+        # Remove existing 'like' or 'dislike'
+        VideoInteraction.query.filter_by(
+            participant_number=participant_number,
+            video_id=video_id,
+            action='like'
+        ).delete()
+        VideoInteraction.query.filter_by(
+            participant_number=participant_number,
+            video_id=video_id,
+            action='dislike'
+        ).delete()
+
+        # Add the new interaction
+        new_interaction = VideoInteraction(
+            participant_number=participant_number,
+            video_id=video_id,
+            action=action,
+            content=''
+        )
+        db.session.add(new_interaction)
+
+    # Handle 'remove_like' and 'remove_dislike' actions
+    elif action in ['remove_like', 'remove_dislike']:
+        target_action = action.split('_')[1]  # 'like' or 'dislike'
+        interaction = VideoInteraction.query.filter_by(
+            participant_number=participant_number,
+            video_id=video_id,
+            action=target_action
+        ).first()
+        if interaction:
+            db.session.delete(interaction)
+
+    # Handle 'star' and 'star_remove' actions
+    elif action in ['star', 'star_remove']:
+        existing_star = VideoInteraction.query.filter_by(
+            participant_number=participant_number,
+            video_id=video_id,
+            action='star'
+        ).first()
+        if action == 'star':
+            if not existing_star:
+                # Add a new star
+                new_interaction = VideoInteraction(
+                    participant_number=participant_number,
+                    video_id=video_id,
+                    action='star',
+                    content=''
+                )
+                db.session.add(new_interaction)
+        elif action == 'star_remove':
+            if existing_star:
+                # Remove the existing star
+                db.session.delete(existing_star)
+
+    # Handle 'comment' action
+    elif action == 'comment':
+        if not comment_text.strip():
+            return jsonify({'success': False, 'message': 'Comment text cannot be empty.'}), 400
+        new_interaction = VideoInteraction(
+            participant_number=participant_number,
+            video_id=video_id,
+            action=action,
+            content=comment_text.strip()
+        )
+        db.session.add(new_interaction)
+
+    else:
+        return jsonify({'success': False, 'message': 'Invalid action.'}), 400
+
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Interaction recorded'}), 200
+    except Exception as e:
+        db.session.rollback()
+        # Log the exception for debugging
+        app.logger.error(f"Database error: {e}")
+        return jsonify({'success': False, 'message': 'Database error'}), 500
 
 @app.route('/api/record_watch_time', methods=['POST'])
 @login_required_custom
@@ -154,33 +250,34 @@ def record_watch_time():
 
 
 
+
 @app.route('/api/videos')
 @login_required_custom
 def get_videos():
     categories = request.args.get('categories')
     limit = 20  # Total number of videos
     category_names = categories.split(',')
-    
+
     # Get the ratings for the selected categories
     participant_number = session.get('participant_number')
     preferences = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
     category_ratings = {pref.category.name: pref.rating for pref in preferences}
-    
+
     # Total ratings sum
     total_ratings = sum(category_ratings.values())
-    
+
     # Calculate number of videos per category
     videos_per_category = {}
     total_videos_assigned = 0
     for category_name in category_names:
         rating = category_ratings.get(category_name, 0)
-        num_videos = round((rating / total_ratings) * limit)
+        num_videos = round((rating / total_ratings) * limit) if total_ratings > 0 else 0
         videos_per_category[category_name] = num_videos
         total_videos_assigned += num_videos
 
     # Adjust if total_videos_assigned is not equal to limit due to rounding
     difference = limit - total_videos_assigned
-    if difference != 0:
+    if difference != 0 and total_ratings > 0:
         # Adjust the category with the highest rating
         max_category = max(category_ratings, key=category_ratings.get)
         videos_per_category[max_category] += difference
@@ -192,24 +289,31 @@ def get_videos():
     # Collect videos
     videos_data = []
     for category_name, num_videos in videos_per_category.items():
-        cat_id = category_ids[category_name]
+        cat_id = category_ids.get(category_name)
+        if not cat_id:
+            continue
         videos_in_category = Video.query.filter_by(category_id=cat_id).all()
         if len(videos_in_category) == 0:
             continue
         selected_videos = random.sample(videos_in_category, min(num_videos, len(videos_in_category)))
         for video in selected_videos:
-            # Extract video ID from the URL
+            # Extract video ID from the URL if necessary
             match = re.search(r'/video/(\d+)', video.url)
             if match:
-                video_id = match.group(1)
-                embed_url = f"https://open.douyin.com/player/video?vid={video_id}&autoplay=0"
-                videos_data.append({
-                    'title': video.title,
-                    'link': embed_url
-                })
+                douyin_vid = match.group(1)
+                embed_url = f"https://open.douyin.com/player/video?vid={douyin_vid}&autoplay=0"
+            else:
+                embed_url = video.url  # Fallback if pattern doesn't match
+
+            videos_data.append({
+                'id': video.id,          # Include the database video ID
+                'title': video.title,
+                'link': embed_url
+            })
+
     # Shuffle the videos
     random.shuffle(videos_data)
-    
+
     return jsonify({'videos': videos_data})
 
 
