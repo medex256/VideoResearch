@@ -4,9 +4,13 @@ from config import app, db
 from functools import wraps
 from collections import Counter
 from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime
+
+
+
+
 import random
 import re
-import random
+import json
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -224,28 +228,51 @@ def user_interaction():
         app.logger.error(f"Database error: {e}")
         return jsonify({'success': False, 'message': 'Database error'}), 500
 
+# ... existing imports and code ...
+
 @app.route('/api/record_watch_time', methods=['POST'])
 @login_required_custom
 def record_watch_time():
-    data = request.get_json()
+    try:
+        # Attempt to parse JSON data manually
+        data = json.loads(request.data.decode('utf-8'))
+    except (TypeError, json.JSONDecodeError) as e:
+        app.logger.error(f"JSON decode error: {e}")
+        return jsonify({'status': 'fail', 'message': 'Invalid JSON data'}), 400
+
     video_id = data.get('video_id')
     watch_duration = data.get('watch_duration')
+    round_number = data.get('round_number')
 
-    if not video_id or watch_duration is None:
+    # Validate incoming data
+    if not video_id or watch_duration is None or round_number is None:
         return jsonify({'status': 'fail', 'message': 'Invalid data'}), 400
 
     participant_number = session.get('participant_number')
+    if not participant_number:
+        return jsonify({'status': 'fail', 'message': 'Participant not found'}), 400
+
+    # Verify that the video exists
+    video = Video.query.get(video_id)
+    if not video:
+        return jsonify({'status': 'fail', 'message': 'Video not found'}), 404
+
+    # Create a new WatchingTime record
     interaction = WatchingTime(
         participant_number=participant_number,
-        round_number=1,  # Adjust if tracking multiple rounds
+        video_id=video_id,
+        round_number=round_number,
         time_spent=watch_duration
     )
+
     try:
         db.session.add(interaction)
         db.session.commit()
+        app.logger.info(f"Watch Time Recorded: Participant {participant_number}, Video {video_id}, Round {round_number}, Time Spent {watch_duration} seconds")
         return jsonify({'status': 'success'}), 200
     except Exception as e:
         db.session.rollback()
+        app.logger.error(f"Database error: {e}")
         return jsonify({'status': 'fail', 'message': 'Database error'}), 500
 
 

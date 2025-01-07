@@ -3,135 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <title>视频观看页面</title>
-<!-- ... existing HTML ... -->
-<style>
-    /* Existing CSS styles */
-    body {
-        margin: 0;
-        padding: 0;
-        background-color: #f8f9fa;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
+    <style>
+        /* Existing CSS styles */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        #progress {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .video-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 1rem 0;
+        }
+        
+        .video-container iframe {
+            width: 360px;
+            height: 640px;
+            border: none;
+            object-fit: cover;
+        }
+
+        /* Custom Play/Pause Button */
+        .controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            /* Removed gap since there's only one button */
+            visibility: hidden; /* Initially hidden */
+        }
+
+        .video-container:hover .controls {
+            visibility: visible;
+        }
+
+        .controls button {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .controls button:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        #navigation {
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        #prevBtn, #nextBtn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        
+        .reactions {
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .reactions button {
+            background: none;
+            border: none;
+            margin: 0 15px;
+            width: 80px;
+            height: 80px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.3s;
+            outline: none;
+            color: #000;
+        }
+        .reactions button .material-icons-outlined {
+            font-size: 3rem; 
+            transition: color 0.3s;
+        }
     
-    #progress {
-        font-size: 1.2rem;
-        margin: 10px 0;
-        text-align: center;
-    }
+        /* Like button pressed -> blue */
+        .reactions button.like-btn.like .material-icons-outlined {
+            color: #0d6efd;
+        }
     
-    .video-container {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        margin: 1rem 0;
-    }
+        /* Dislike button pressed -> red */
+        .reactions button.dislike-btn.dislike .material-icons-outlined {
+            color: #dc3545; 
+        }
     
-    .video-container iframe {
-        width: 360px;
-        height: 640px;
-        border: none;
-        object-fit: cover;
-    }
-    
-    #navigation {
-        text-align: center;
-        margin: 10px 0;
-    }
-    
-    #prevBtn, #nextBtn {
-        padding: 10px 20px;
-        font-size: 1rem;
-        margin: 0 10px;
-        cursor: pointer;
-    }
-    
-    .reactions {
-        text-align: center;
-        margin: 10px 0;
-    }
-    
-    .reactions button {
-        background: none;
-        border: none;
-        margin: 0 15px;
-        font-size: 2rem;
-        cursor: pointer;
-        transition: color 0.3s, background-color 0.3s;
-        outline: none; /* Remove default outline */
-    }
-    
-    /* Default state colors */
-    .reactions button.like-btn {
-        color: #000; /* Black */
-    }
-    
-    .reactions button.dislike-btn {
-        color: #000; /* Black */
-    }
-    
-    .reactions button.star-btn {
-        color: #000; /* Black */
-    }
-    
-    /* Selected States */
-    .reactions button.selected.like {
-        color: #ffc107; /* Gold for Like */
-    }
-    .reactions button.selected.dislike {
-        color: #dc3545; /* Red for Dislike */
-    }
-    .reactions button.selected.star {
-        color: #ffc107; /* Gold for Star */
-    }
-    
-    .comments-section {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-        flex-shrink: 0; /* Prevent shrinking */
-    }
-    
-    .comments-section h3 {
-        margin-bottom: 10px;
-    }
-    
-    .comments-section form {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 20px;
-    }
-    
-    .comments-section textarea {
-        resize: vertical;
-        min-height: 150px;
-        min-width: 460px;
-        padding: 10px;
-        font-size: 1rem;
-        margin-bottom: 10px;
-    }
-    
-    .comments-section button {
-        align-self: flex-end;
-        padding: 8px 16px;
-        font-size: 1rem;
-        cursor: pointer;
-    }
-</style>
-<!-- ... existing HTML ... -->
+        /* Star button pressed -> gold */
+        .reactions button.star-btn.star .material-icons-outlined {
+            color: #ffc107; 
+        }
+        
+        .comments-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        
+        .comments-section h3 {
+            margin-bottom: 10px;
+        }
+        
+        .comments-section form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        
+        .comments-section textarea {
+            resize: vertical;
+            min-height: 150px;
+            min-width: 460px;
+            padding: 10px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .comments-section button {
+            align-self: flex-end;
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div id="progress">为您推荐: 1 / 20</div>
 
-    <div class="video-container" id="videoContainer"></div>
+    <div class="video-container" id="videoContainer">
+        <!-- Single Toggle Play/Pause Button -->
+        <div class="controls">
+            <button id="playPauseBtn" title="播放">
+                <span class="material-icons-outlined">play_arrow</span>
+            </button>
+        </div>
+    </div>
     
     <div class="reactions">
-        <button id="likeBtn" class="like-btn" title="喜欢">&#128077;</button>
-        <button id="dislikeBtn" class="dislike-btn" title="不喜欢">&#128078;</button>
-        <button id="starBtn" class="star-btn" title="收藏">&#9733;</button>
+        <button id="likeBtn" class="like-btn" title="喜欢">
+            <span class="material-icons-outlined">thumb_up</span>
+        </button>
+        <button id="dislikeBtn" class="dislike-btn" title="不喜欢">
+            <span class="material-icons-outlined">thumb_down</span>
+        </button>
+        <button id="starBtn" class="star-btn" title="收藏">
+            <span class="material-icons-outlined">star_rate</span>
+        </button>
     </div>
     
     <div id="navigation">
@@ -153,26 +195,24 @@
         let currentIndex = 0;
         let watchStartTime = null;
         let watchTime = 0;
-    
+
         // State variables
-        let likeSelected = false;
-        let dislikeSelected = false;
-        let starSelected = false;
-    
+        let isPlaying = false;
+
         // Button Elements
         const likeBtn = document.getElementById('likeBtn');
         const dislikeBtn = document.getElementById('dislikeBtn');
         const starBtn = document.getElementById('starBtn');
         const commentForm = document.getElementById('commentForm');
-    
+        const playPauseBtn = document.getElementById('playPauseBtn');
+
         // Function to get the current video's database ID
         const currentVideoId = () => videos[currentIndex].id;
-    
+
         // Function to send interaction data to the backend
         function sendInteraction(action, commentText = '') {
-            // Debugging: Log the data being sent
             console.log('Sending Interaction:', { video_id: currentVideoId(), action, comment: commentText });
-    
+
             return fetch('/api/user_interaction', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -188,89 +228,88 @@
                 return { success: false, message: '网络错误，请稍后再试。' };
             });
         }
-    
+
+        // Event listener for play/pause button
+        playPauseBtn.addEventListener('click', () => {
+            const iframe = document.querySelector('.video-container iframe');
+            if (!iframe) {
+                console.error('视频iframe未找到。');
+                return;
+            }
+
+            if (isPlaying) {
+                // Pause the video
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'pause' }), '*');
+
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+                playPauseBtn.setAttribute('title', '播放');
+                isPlaying = false;
+                sendWatchTime();
+            } else {
+                // Play the video
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'play' }), '*');
+
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
+                playPauseBtn.setAttribute('title', '暂停');
+                isPlaying = true;
+                watchStartTime = Date.now();
+            }
+        });
+
         // Event listeners for reaction buttons
         likeBtn.addEventListener('click', () => {
             if (likeBtn.classList.contains('like')) {
                 likeBtn.classList.remove('like');
-                likeBtn.style.backgroundColor = "#000";
-                likeBtn.style.color = "#fff";
-                likeSelected = false;
-                sendInteraction('remove_like'); // Ensure backend handles 'remove_like'
+                sendInteraction('remove_like');
             } else {
-                likeBtn.style.backgroundColor = "#fff";
-                likeBtn.style.color = "#ffc107"; // Gold color for selected state
                 likeBtn.classList.add('like');
-                likeSelected = true;
-                // Deselect Dislike if it was selected
-                if (dislikeSelected) {
+                if (dislikeBtn.classList.contains('dislike')) {
                     dislikeBtn.classList.remove('dislike');
-                    dislikeBtn.style.backgroundColor = "#000";
-                    dislikeBtn.style.color = "#fff";
-                    dislikeSelected = false;
-                    sendInteraction('remove_dislike'); // Ensure backend handles 'remove_dislike'
+                    sendInteraction('remove_dislike');
                 }
                 sendInteraction('like');
             }
             updateUI();
         });
-    
+
         dislikeBtn.addEventListener('click', () => {
             if (dislikeBtn.classList.contains('dislike')) {
                 dislikeBtn.classList.remove('dislike');
-                dislikeBtn.style.backgroundColor = "#000";
-                dislikeBtn.style.color = "#fff";
-                dislikeSelected = false;
-                sendInteraction('remove_dislike'); // Ensure backend handles 'remove_dislike'
+                sendInteraction('remove_dislike');
             } else {
-                dislikeBtn.style.backgroundColor = "#fff";
-                dislikeBtn.style.color = "#dc3545"; // Red color for selected state
                 dislikeBtn.classList.add('dislike');
-                dislikeSelected = true;
-                // Deselect Like if it was selected
-                if (likeSelected) {
+                if (likeBtn.classList.contains('like')) {
                     likeBtn.classList.remove('like');
-                    likeBtn.style.backgroundColor = "#000";
-                    likeBtn.style.color = "#fff";
-                    likeSelected = false;
-                    sendInteraction('remove_like'); // Ensure backend handles 'remove_like'
+                    sendInteraction('remove_like');
                 }
                 sendInteraction('dislike');
             }
             updateUI();
         });
-    
+
         starBtn.addEventListener('click', () => {
             if (starBtn.classList.contains('star')) {
                 starBtn.classList.remove('star');
-                starBtn.style.backgroundColor = "#000";
-                starBtn.style.color = "#fff";
-                starSelected = false;
-                sendInteraction('star_remove'); // Ensure backend handles 'star_remove'
+                sendInteraction('star_remove');
             } else {
-                starBtn.style.backgroundColor = "#fff";
-                starBtn.style.color = "#ffc107"; // Gold color for selected state
                 starBtn.classList.add('star');
-                starSelected = true;
                 sendInteraction('star');
             }
             updateUI();
         });
-    
+
         // Function to update UI based on selections
         function updateUI() {
-            // No additional UI updates needed as styles are handled inline
-            // You can add logs or other UI feedback here if desired
-            console.log('UI Updated:', { likeSelected, dislikeSelected, starSelected });
+            console.log('UI Updated');
         }
-    
+
         // Event listener for comment submission
         commentForm.addEventListener('submit', e => {
             e.preventDefault();
             const commentInput = document.getElementById('commentInput');
             const commentText = commentInput.value.trim();
             if (!commentText) return;
-    
+
             sendInteraction('comment', commentText).then(response => {
                 if (response.success) {
                     commentInput.value = '';
@@ -280,7 +319,23 @@
                 }
             });
         });
-    
+
+        // Function to send watch time to backend
+        function sendWatchTime() {
+            if (watchStartTime !== null && !isPlaying) {
+                const currentTime = Date.now();
+                watchTime += (currentTime - watchStartTime) / 1000; // Convert to seconds
+
+                navigator.sendBeacon('/api/record_watch_time', JSON.stringify({
+                    video_id: currentVideoId(),
+                    watch_duration: watchTime,
+                    round_number: 1 // Update as needed if multiple rounds are implemented
+                }));
+                console.log('Watch Time Sent:', { video_id: currentVideoId(), watch_duration: watchTime });
+                watchTime = 0;
+            }
+        }
+
         // Fetch videos based on selected categories
         fetch(`/api/videos?categories=${selectedCategories.join(',')}`)
             .then(response => response.json())
@@ -297,40 +352,75 @@
             .catch(error => {
                 console.error('Error fetching videos:', error);
             });
-    
+
         // Function to display the current video
         function showVideo(index) {
+            if (watchStartTime !== null) {
+                sendWatchTime();
+            }
+
             const video = videos[index];
             const videoContainer = document.getElementById('videoContainer');
             videoContainer.innerHTML = `
                 <iframe id="videoFrame" src="${video.link}" allowfullscreen></iframe>
+                <div class="controls">
+                    <button id="playPauseBtn" title="${isPlaying ? '暂停' : '播放'}">
+                        <span class="material-icons-outlined">${isPlaying ? 'pause' : 'play_arrow'}</span>
+                    </button>
+                </div>
             `;
             document.getElementById('prevBtn').disabled = index === 0;
             document.getElementById('nextBtn').disabled = index === videos.length - 1;
             updateProgress();
             resetWatchTime();
-            trackWatchTime();
             // Reset reaction buttons
-            likeSelected = false;
-            dislikeSelected = false;
-            starSelected = false;
             likeBtn.classList.remove('like');
             dislikeBtn.classList.remove('dislike');
             starBtn.classList.remove('star');
-            likeBtn.style.backgroundColor = "#000";
-            likeBtn.style.color = "#fff";
-            dislikeBtn.style.backgroundColor = "#000";
-            dislikeBtn.style.color = "#fff";
-            starBtn.style.backgroundColor = "#000";
-            starBtn.style.color = "#fff";
             updateUI();
+            
+            // Re-attach event listener to the new play/pause button
+            attachCustomControlEvents();
         }
-    
+
+        // Function to attach events to custom controls
+        function attachCustomControlEvents() {
+            const newPlayPauseBtn = document.getElementById('playPauseBtn');
+
+            newPlayPauseBtn.addEventListener('click', () => {
+                const iframe = document.querySelector('.video-container iframe');
+                if (!iframe) {
+                    console.error('视频iframe未找到。');
+                    return;
+                }
+
+                if (isPlaying) {
+                    // Attempt to pause the video
+                    // Note: This requires the embedded video player to support postMessage for control
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'pause' }), '*');
+
+                    newPlayPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+                    newPlayPauseBtn.setAttribute('title', '播放');
+                    isPlaying = false;
+                    sendWatchTime();
+                } else {
+                    // Attempt to play the video
+                    // Note: This requires the embedded video player to support postMessage for control
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'play' }), '*');
+
+                    newPlayPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
+                    newPlayPauseBtn.setAttribute('title', '暂停');
+                    isPlaying = true;
+                    watchStartTime = Date.now();
+                }
+            });
+        }
+
         // Function to update progress display
         function updateProgress() {
             document.getElementById('progress').textContent = `${currentIndex + 1} / ${videos.length}`;
         }
-    
+
         // Event listeners for navigation buttons
         document.getElementById('prevBtn').addEventListener('click', () => {
             if (currentIndex > 0) {
@@ -345,25 +435,17 @@
                 showVideo(currentIndex);
             }
         });
-    
-        // Optional watch-time tracking functions
+
+        // Watch Time Tracking Functions
         function resetWatchTime() {
-            watchStartTime = Date.now();
+            watchStartTime = null;
+            watchTime = 0;
         }
-    
-        function trackWatchTime() {
-            // Implementation depends on how you want to record watch time.
-            // Example: Send watch duration when the video is hidden or navigated away.
-            window.addEventListener('beforeunload', () => {
-                if (watchStartTime) {
-                    watchTime = (Date.now() - watchStartTime) / 1000; // Convert to seconds
-                    navigator.sendBeacon('/api/record_watch_time', JSON.stringify({
-                        video_id: currentVideoId(),
-                        watch_duration: watchTime
-                    }));
-                }
-            });
-        }
+
+        // Initialize tracking when the page loads
+        window.addEventListener('load', () => {
+            // Initialization already handled in fetch videos
+        });
     </script>
 </body>
 </html>

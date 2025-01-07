@@ -68,9 +68,12 @@ class MessageTime(db.Model):
     time_spent = db.Column(db.Float, nullable=False)  # Time in seconds
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+# ... existing imports ...
+
 class WatchingTime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     participant_number = db.Column(db.String(50), db.ForeignKey('participant.participant_number'), nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)  # Changed from round_number
     round_number = db.Column(db.Integer, nullable=False)  # 1 or 2
     time_spent = db.Column(db.Float, nullable=False)  # Time in seconds
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
