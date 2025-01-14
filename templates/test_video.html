@@ -2,163 +2,104 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>Douyin 视频测试</title>
+    <title>Douyin MP4 Test</title>
     <style>
-        /* Container to hold iframe and overlay */
-        .video-container {
-            position: relative;
-            width: 560px; /* Adjust based on iframe size */
-            height: 315px; /* Adjust based on iframe size */
-            margin-bottom: 20px;
-        }
-
-        /* The IFrame */
-        .video-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Transparent Overlay */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            cursor: pointer;
-        }
-
-        /* Controls Styling */
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .controls button {
-            background: #007bff;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .controls button:hover {
-            background: #0056b3;
-        }
-
-        #watchTime {
-            font-size: 1.2rem;
-            margin-top: 10px;
-        }
+      body { font-family: sans-serif; margin: 2rem; }
+      #videoBox { margin-top: 1rem; }
+      #status { margin-top: 1rem; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>Douyin 视频测试</h2>
-    <div class="video-container">
-        <iframe src="{{ embed_url }}" id="douyinIframe"></iframe>
-        <div class="overlay" id="videoOverlay"></div>
-    </div>
-    <div class="controls">
-        <button id="startTrackingBtn">开始跟踪</button>
-        <button id="stopTrackingBtn">停止跟踪</button>
-    </div>
-    <div id="watchTime">观看时间: 0 秒</div>
-
+    <h2>Douyin MP4 Test</h2>
+    <p>Fetching raw MP4 from API for: <span id="douyinLink"></span></p>
+    <div id="videoBox"></div>
+    <div id="status">Status: Not playing</div>
+    
     <script>
-        // Selectors
-        const videoOverlay = document.getElementById('videoOverlay');
-        const startTrackingBtn = document.getElementById('startTrackingBtn');
-        const stopTrackingBtn = document.getElementById('stopTrackingBtn');
-        const watchTimeDisplay = document.getElementById('watchTime');
+      const originalLink = "{{ original_link }}";
+      document.getElementById('douyinLink').textContent = originalLink;
 
-        // Watch Time Variables
+      if(!originalLink) {
+        document.getElementById('status').textContent = "No URL provided. Add ?url=... in the address bar.";
+      } else {
+        const streamVideoUrl = `/stream_video?url=${encodeURIComponent(originalLink)}`;
+
+        // Set the video source to the stream_video route
+        const videoBox = document.getElementById('videoBox');
+        videoBox.innerHTML = `
+          <video id="testVideo" width="640" height="360" controls>
+            <source src="${streamVideoUrl}" type="video/mp4">
+            您的浏览器不支持 HTML5 video 标签.
+          </video>
+        `;
+        const v = document.getElementById('testVideo');
+        const statusEl = document.getElementById('status');
+
+        v.addEventListener('play', () => {
+          statusEl.textContent = "Status: Playing";
+          trackWatchTimeStart();
+        });
+        v.addEventListener('pause', () => {
+          statusEl.textContent = "Status: Paused";
+          trackWatchTimePause();
+        });
+        v.addEventListener('ended', () => {
+          statusEl.textContent = "Status: Ended";
+          trackWatchTimeEnd();
+        });
+
+        // Watch Time Tracking
         let watchStartTime = null;
-        let totalWatchTime = 0;
-        let watchTimer = null;
+        let accumulatedWatchTime = 0;
 
-        // Overlay Click Event
-        videoOverlay.addEventListener('click', () => {
-            // When the overlay is clicked, assume user interacted with the video
-            if (!watchStartTime) {
-                watchStartTime = Date.now();
-                startWatchTimer();
-                console.log('用户开始观看视频');
-            }
-        });
-
-        // Start Tracking Button
-        startTrackingBtn.addEventListener('click', () => {
-            if (!watchStartTime) {
-                watchStartTime = Date.now();
-                startWatchTimer();
-                console.log('跟踪已开始');
-            }
-        });
-
-        // Stop Tracking Button
-        stopTrackingBtn.addEventListener('click', () => {
-            if (watchStartTime) {
-                const elapsed = (Date.now() - watchStartTime) / 1000;
-                totalWatchTime += elapsed;
-                watchStartTime = null;
-                stopWatchTimer();
-                sendWatchTimeToBackend(elapsed);
-                console.log('跟踪已停止');
-            }
-        });
-
-        // Start Watch Timer
-        function startWatchTimer() {
-            watchTimer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - watchStartTime) / 1000);
-                watchTimeDisplay.textContent = `观看时间: ${totalWatchTime + elapsed} 秒`;
-            }, 1000);
+        function trackWatchTimeStart() {
+          watchStartTime = Date.now();
         }
 
-        // Stop Watch Timer
-        function stopWatchTimer() {
-            clearInterval(watchTimer);
-            watchTimer = null;
-            watchTimeDisplay.textContent = `观看时间: ${totalWatchTime} 秒`;
+        function trackWatchTimePause() {
+          if (watchStartTime) {
+            const watchEndTime = Date.now();
+            const watchDuration = Math.floor((watchEndTime - watchStartTime) / 1000); // seconds
+            accumulatedWatchTime += watchDuration;
+            watchStartTime = null;
+
+            // Send watchDuration to the server
+            recordWatchTime(watchDuration);
+          }
         }
 
-        // Send Watch Time to Backend
-        function sendWatchTimeToBackend(elapsed) {
-            fetch('/api/record_watch_time', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    video_id: 'test_video',  // Use a test identifier or actual video ID
-                    watch_duration: elapsed,
-                    round_number: 1
-                })
+        function trackWatchTimeEnd() {
+          if (watchStartTime) {
+            const watchEndTime = Date.now();
+            const watchDuration = Math.floor((watchEndTime - watchStartTime) / 1000); // seconds
+            accumulatedWatchTime += watchDuration;
+            watchStartTime = null;
+
+            // Send watchDuration to the server
+            recordWatchTime(watchDuration);
+          }
+          // Optionally, send total watch time
+          // console.log(`Total Watch Time: ${accumulatedWatchTime} seconds`);
+        }
+
+        function recordWatchTime(duration) {
+          fetch('/record_watch_time', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              video_id: '{{ video_id }}',  // Pass video ID as needed
+              duration: duration
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log('观看时间已成功记录。');
-                } else {
-                    console.error('记录观看时间失败:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('发送观看时间时出错:', error);
-            });
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Watch time recorded:', data);
+          })
+          .catch(error => {
+            console.error('Error recording watch time:', error);
+          });
         }
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (watchStartTime) {
-                const elapsed = (Date.now() - watchStartTime) / 1000;
-                sendWatchTimeToBackend(elapsed);
-            }
-        });
+      }
     </script>
 </body>
 </html>

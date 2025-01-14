@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, redirect, url_for, request, flash, session
+from flask import Flask, jsonify, render_template, redirect, url_for, request, flash, session, make_response, Response
 from flask_login import LoginManager, login_user, login_required, current_user
 from config import app, db
 from functools import wraps
@@ -11,6 +11,7 @@ from models import Participant,VideoCategory,Video,Preference,VideoInteraction,W
 import random
 import re
 import json
+import requests
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -130,10 +131,139 @@ def next_step():
     return render_template('video_viewing_1.html', selected_categories=selected_categories)
 
 
+"""@app.route('/proxy_video')
+@login_required_custom
+def proxy_video():
+    original_link = request.args.get('url', '')
+    if not original_link:
+        return jsonify({'error': 'No URL provided.'}), 400
 
-# ...existing code...
+    # Prepare the API URL
+    final_url = f"https://api.douyin.wtf/api/hybrid/video_data?url={original_link}&minimal=true"
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/112.0.0.0 Safari/537.36'
+        ),
+        'Accept': 'application/json',
+        'Referer': 'https://www.douyin.com/',  # Include Referer if required by the API
+    }
 
-# ... existing imports and code ...
+    try:
+        response = requests.get(final_url, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as http_err:
+        app.logger.error(f"HTTP error occurred: {http_err}")
+        if response is not None:
+            app.logger.error(f"Response status: {response.status_code}")
+            app.logger.error(f"Response content: {response.text}")
+        return jsonify({'error': 'Failed to fetch video data.'}), response.status_code if response else 500
+    except Exception as err:
+        app.logger.error(f"Other error occurred: {err}")
+        return jsonify({'error': 'An unexpected error occurred.'}), 500
+
+    # Assuming the API returns JSON
+    try:
+        data = response.json()
+    except ValueError:
+        app.logger.error("Response content is not valid JSON.")
+        return jsonify({'error': 'Invalid response format.'}), 500
+
+    return jsonify(data)"""
+
+
+
+@app.route('/stream_video')
+@login_required_custom
+def stream_video():
+    original_link = request.args.get('url', '')
+    if not original_link:
+        return jsonify({'error': 'No URL provided.'}), 400
+
+    # Prepare the API URL to get the MP4 link
+    final_url = f"https://api.douyin.wtf/api/hybrid/video_data?url={original_link}&minimal=true"
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/112.0.0.0 Safari/537.36'
+        ),
+        'Accept': 'application/json',
+        #'Referer': 'https://www.douyin.com/',  # Include Referer if required by the API
+    }
+
+    app.logger.info(f"Fetching video data from: {final_url}")
+    try:
+        response = requests.get(final_url, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as http_err:
+        app.logger.error(f"HTTP error occurred while fetching video data: {http_err}")
+        if response is not None and response.text:
+            app.logger.error(f"Response status: {response.status_code}")
+            app.logger.error(f"Response content: {response.text}")
+        return jsonify({'error': 'Failed to fetch video data.'}), response.status_code if response else 500
+    except Exception as err:
+        app.logger.error(f"Other error occurred while fetching video data: {err}")
+        return jsonify({'error': 'An unexpected error occurred.'}), 500
+
+    # Parse the JSON response to extract the MP4 link
+    try:
+        data = response.json()
+    except ValueError:
+        app.logger.error("Response content is not valid JSON.")
+        return jsonify({'error': 'Invalid response format.'}), 500
+
+    mp4_link = data.get('data', {}).get('video_data', {}).get('nwm_video_url')
+    if not mp4_link:
+        app.logger.error("No MP4 link found in the API response.")
+        return jsonify({'error': 'No MP4 link found.'}), 400
+
+    app.logger.info(f"MP4 Link extracted: {mp4_link}")
+
+    # Fetch the actual MP4 content
+    try:
+        video_response = requests.get(mp4_link, headers={
+            'User-Agent': (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/112.0.0.0 Safari/537.36'
+            ),
+            'Referer': 'https://www.douyin.com/',  # Include Referer if required by the CDN
+        }, stream=True)
+        video_response.raise_for_status()
+    except requests.exceptions.HTTPError as http_err:
+        app.logger.error(f"HTTP error occurred while fetching video content: {http_err}")
+        app.logger.error(f"Response status: {video_response.status_code}")
+        app.logger.error(f"Response content: {video_response.text}")
+        return jsonify({'error': 'Failed to fetch video content.'}), video_response.status_code if video_response else 500
+    except Exception as err:
+        app.logger.error(f"Other error occurred while fetching video content: {err}")
+        return jsonify({'error': 'An unexpected error occurred while fetching video.'}), 500
+
+    # Generator to stream video content
+    def generate():
+        try:
+            for chunk in video_response.iter_content(chunk_size=8192):
+                if chunk:
+                    yield chunk
+        except GeneratorExit:
+            video_response.close()
+            app.logger.info("Client disconnected, stopping video stream.")
+        except Exception as e:
+            app.logger.error(f"Error while streaming video: {e}")
+            video_response.close()
+
+    # Extract filename from mp4_link
+    filename = mp4_link.split('/')[-1].split('?')[0] if '/' in mp4_link else 'video.mp4'
+
+    return Response(
+        generate(),
+        content_type=video_response.headers.get('Content-Type', 'video/mp4'),
+        headers={
+            'Access-Control-Allow-Origin': '*',
+            'Content-Disposition': f'inline; filename="{filename}"',
+        }
+    )
+
+
 
 @app.route('/api/user_interaction', methods=['POST'])
 @login_required_custom
@@ -228,7 +358,6 @@ def user_interaction():
         app.logger.error(f"Database error: {e}")
         return jsonify({'success': False, 'message': 'Database error'}), 500
 
-# ... existing imports and code ...
 
 @app.route('/api/record_watch_time', methods=['POST'])
 @login_required_custom
@@ -366,8 +495,8 @@ def test_embed():
 def test_video():
     test_tiktok_id = "7376832111149468934"
     embed_url = f"https://www.tiktok.com/player/v1/{test_tiktok_id}/"
-    embed_d_url = f"https://open.douyin.com/player/video?vid=7290445158779276601&autoplay=1&description=1/"
-    return render_template('test_video.html', embed_url=embed_d_url)
+    embed_d_url = f"https://www.douyin.com/video/7290445158779276601"
+    return render_template('test_video.html', original_link=embed_d_url)
 
 if __name__ =="__main__":
     with app.app_context():
