@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Douyin 视频测试</title>
+    <style>
+        /* Container to hold iframe and overlay */
+        .video-container {
+            position: relative;
+            width: 560px; /* Adjust based on iframe size */
+            height: 315px; /* Adjust based on iframe size */
+            margin-bottom: 20px;
+        }
+
+        /* The IFrame */
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Transparent Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        /* Controls Styling */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .controls button {
+            background: #007bff;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .controls button:hover {
+            background: #0056b3;
+        }
+
+        #watchTime {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Douyin 视频测试</h2>
+    <div class="video-container">
+        <iframe src="{{ embed_url }}" id="douyinIframe"></iframe>
+        <div class="overlay" id="videoOverlay"></div>
+    </div>
+    <div class="controls">
+        <button id="startTrackingBtn">开始跟踪</button>
+        <button id="stopTrackingBtn">停止跟踪</button>
+    </div>
+    <div id="watchTime">观看时间: 0 秒</div>
+
+    <script>
+        // Selectors
+        const videoOverlay = document.getElementById('videoOverlay');
+        const startTrackingBtn = document.getElementById('startTrackingBtn');
+        const stopTrackingBtn = document.getElementById('stopTrackingBtn');
+        const watchTimeDisplay = document.getElementById('watchTime');
+
+        // Watch Time Variables
+        let watchStartTime = null;
+        let totalWatchTime = 0;
+        let watchTimer = null;
+
+        // Overlay Click Event
+        videoOverlay.addEventListener('click', () => {
+            // When the overlay is clicked, assume user interacted with the video
+            if (!watchStartTime) {
+                watchStartTime = Date.now();
+                startWatchTimer();
+                console.log('用户开始观看视频');
+            }
+        });
+
+        // Start Tracking Button
+        startTrackingBtn.addEventListener('click', () => {
+            if (!watchStartTime) {
+                watchStartTime = Date.now();
+                startWatchTimer();
+                console.log('跟踪已开始');
+            }
+        });
+
+        // Stop Tracking Button
+        stopTrackingBtn.addEventListener('click', () => {
+            if (watchStartTime) {
+                const elapsed = (Date.now() - watchStartTime) / 1000;
+                totalWatchTime += elapsed;
+                watchStartTime = null;
+                stopWatchTimer();
+                sendWatchTimeToBackend(elapsed);
+                console.log('跟踪已停止');
+            }
+        });
+
+        // Start Watch Timer
+        function startWatchTimer() {
+            watchTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - watchStartTime) / 1000);
+                watchTimeDisplay.textContent = `观看时间: ${totalWatchTime + elapsed} 秒`;
+            }, 1000);
+        }
+
+        // Stop Watch Timer
+        function stopWatchTimer() {
+            clearInterval(watchTimer);
+            watchTimer = null;
+            watchTimeDisplay.textContent = `观看时间: ${totalWatchTime} 秒`;
+        }
+
+        // Send Watch Time to Backend
+        function sendWatchTimeToBackend(elapsed) {
+            fetch('/api/record_watch_time', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    video_id: 'test_video',  // Use a test identifier or actual video ID
+                    watch_duration: elapsed,
+                    round_number: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('观看时间已成功记录。');
+                } else {
+                    console.error('记录观看时间失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('发送观看时间时出错:', error);
+            });
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (watchStartTime) {
+                const elapsed = (Date.now() - watchStartTime) / 1000;
+                sendWatchTimeToBackend(elapsed);
+            }
+        });
+    </script>
+</body>
+</html>

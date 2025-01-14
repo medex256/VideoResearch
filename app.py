@@ -329,13 +329,14 @@ def get_videos():
             if match:
                 douyin_vid = match.group(1)
                 embed_url = f"https://open.douyin.com/player/video?vid={douyin_vid}&autoplay=0"
+                final_url = f"https://www.douyin.com/video/{douyin_vid}"
             else:
                 embed_url = video.url  # Fallback if pattern doesn't match
 
             videos_data.append({
                 'id': video.id,          # Include the database video ID
                 'title': video.title,
-                'link': embed_url
+                'link': final_url,
             })
 
     # Shuffle the videos
@@ -360,7 +361,18 @@ def test_embed():
     return render_template('test_embed.html', video_url=douyin_video_url)
 
 
+@app.route('/test_video')
+@login_required_custom
+def test_video():
+    test_tiktok_id = "7376832111149468934"
+    embed_url = f"https://www.tiktok.com/player/v1/{test_tiktok_id}/"
+    embed_d_url = f"https://open.douyin.com/player/video?vid=7290445158779276601&autoplay=1&description=1/"
+    return render_template('test_video.html', embed_url=embed_d_url)
+
 if __name__ =="__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
+
+
