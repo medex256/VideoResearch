@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}第二轮视频类型选择{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4 text-center display-5">请在下列12种视频类型中选择您最想要观看的3类视频</h2>
+    <p class="text-center fs-4">
+        通过拖动滑块对您喜爱的三类视频进行排序。<br>
+        一旦您选择的视频类型数量达到3，滑块将会自动锁定。若您想要改变您的选择，请点击“重置”按钮重新选择。<br>
+        数值越高，该平台推荐某一类型视频的可能性越大。
+    </p>
+    <form method="POST" action="{{ url_for('submit_categories_round2') }}">
+        <div class="mb-3 list-group">
+            
+            <div class="d-flex justify-content-start mb-4 mx-auto" style="width: 75%;">
+                <button type="button" class="btn btn-secondary fs-4" id="resetBtn">重置</button>
+            </div>
+
+            <!-- Category Sliders -->
+            {% for category in categories %}
+                <div class="slidecontainer d-flex align-items-center mb-4 p-3 border rounded mx-auto" style="width: 75%;">
+                    <label for="range{{ category.id }}" class="label_cat me-3 fs-5" style="min-width: 250px; font-weight: bold;">
+                        {{ category.name_cn }}
+                    </label>
+                    <input onmouseup="checkLock()" type="range" min="0" max="10" value="0"
+                        class="slider form-range me-3"
+                        id="range{{ category.id }}" name="rating_{{ category.id }}"
+                        style="height: 8px; width: 65%;">
+                    <span id="value{{ category.id }}" class="fw-bold fs-4" style="width: 30px;">0</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit Button Centered -->
+        <div class="d-flex justify-content-center mb-4">
+            <button type="submit" class="btn btn-primary fs-4" id="submitBtn" disabled>提交</button>
+        </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sliders = document.querySelectorAll('.slider');
+            const resetBtn = document.getElementById('resetBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            let selectedCount = 0;
+
+            sliders.forEach((slider) => {
+                const categoryId = slider.id.replace('range', '');
+                const valueSpan = document.getElementById(`value${categoryId}`);
+
+                slider.addEventListener('input', function() {
+                    valueSpan.textContent = this.value;
+                });
+
+                slider.addEventListener('change', function() {
+                    if (this.value > 0 && !this.disabled) {
+                        selectedCount++;
+                    } else if (this.value == 0 && !this.disabled) {
+                        selectedCount--;
+                    }
+                    submitBtn.disabled = selectedCount !== 3;
+                    if (selectedCount === 3) {
+                        sliders.forEach(s => {
+                            if (s.value == 0) s.disabled = true;
+                        });
+                    } else {
+                        sliders.forEach(s => {
+                            if (s.value == 0) s.disabled = false;
+                        });
+                    }
+                });
+            });
+
+            resetBtn.addEventListener('click', function() {
+                sliders.forEach((slider) => {
+                    slider.value = 0;
+                    const categoryId = slider.id.replace('range', '');
+                    const valueSpan = document.getElementById(`value${categoryId}`);
+                    valueSpan.textContent = '0';
+                    slider.disabled = false;
+                });
+                selectedCount = 0;
+                submitBtn.disabled = true;
+            });
+        });
+
+        function checkLock() {
+            // Additional logic if needed
+        }
+    </script>
+{% endblock %}

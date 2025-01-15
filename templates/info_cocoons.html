@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>了解更多信息茧房知识</title>
+    <style>
+        /* CSS Styles */
+        .video-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .btn-primary {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5 text-center">
+        <h2 class="mb-4">信息茧房知识</h2>
+        <button id="showVideoBtn" class="btn btn-primary">了解更多信息茧房知识</button>
+        
+        <div class="video-container" id="videoContainer">
+            <video width="640" height="360" controls>
+                <source src="{{ url_for('stream_video', url=video_link)}}" type="video/mp4">
+                您的浏览器不支持 HTML5 video 标签.
+            </video>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('showVideoBtn').addEventListener('click', function() {
+            document.getElementById('videoContainer').style.display = 'block';
+            this.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

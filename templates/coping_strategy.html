@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}应对策略{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2 class="mb-4">请选择您的应对策略</h2>
+    <p class="fs-5 mb-4">请选择下列选项之一，继续观看下一阶段视频。</p>
+    
+    <form method="POST" action="{{ url_for('coping_strategy') }}">
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="strategy" id="watch_other" value="watch_other" required>
+            <label class="form-check-label fs-5" for="watch_other">观看多样化视频</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="strategy" id="learn_more" value="learn_more">
+            <label class="form-check-label fs-5" for="learn_more">了解更多信息茧房</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="strategy" id="avoidance" value="avoidance">
+            <label class="form-check-label fs-5" for="avoidance">观看相同类型视频</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg mt-3">继续</button>
+    </form>
+</div>
+{% endblock %}

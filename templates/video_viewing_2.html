@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>视频观看页面</title>
+    <title>第二轮视频观看页面</title>
     <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
     <style>
@@ -178,7 +178,7 @@
     </style>
 </head>
 <body>
-    <div id="progress">为您推荐: 1 / 20</div>
+    <div id="progress">为您推荐: 1 / 3</div>
 
     <div class="video-container" id="videoContainer">
         <!-- Single Toggle Play/Pause Button -->
@@ -321,11 +321,11 @@
         });
 
         // Fetch videos based on selected categories
-        fetch(`/api/videos?categories=${selectedCategories.join(',')}`)
+        fetch(`/api/videos_round2?categories=${selectedCategories.join(',')}`)
             .then(response => response.json())
             .then(data => {
                 videos = data.videos;
-                //console.log('Fetched videos:', videos);
+                console.log('Fetched videos:', videos);
                 if (videos.length > 0) {
                     showVideo(currentIndex);
                     updateProgress();
@@ -434,7 +434,7 @@
             playPauseBtn.setAttribute('title', '播放');
             
             if (currentIndex >= videos.length - 1) {
-                window.location.href = "{{ url_for('end_video_viewing_1') }}";
+                window.location.href = "{{ url_for('end_video_viewing_2') }}";
             }
         }
 
@@ -453,7 +453,7 @@
         
         document.getElementById('nextBtn').addEventListener('click', () => {
             if (currentIndex >= videos.length - 1) {
-                window.location.href = "{{ url_for('end_video_viewing_1') }}";
+                window.location.href = "{{ url_for('end_video_viewing_2') }}";
             } else {
                 currentIndex++;
                 showVideo(currentIndex);
@@ -474,7 +474,7 @@
                         body: JSON.stringify({
                             video_id: currentVideoId(),
                             watch_duration: watchTime,
-                            round_number: 1
+                            round_number: 2
                         })
                     })
                     .then(response => response.json())

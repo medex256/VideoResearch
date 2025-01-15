@@ -7,7 +7,6 @@ from models import Participant,VideoCategory,Video,Preference,VideoInteraction,W
 
 
 
-
 import random
 import re
 import json
@@ -25,7 +24,8 @@ def login_required_custom(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'participant_number' not in session:
-            return redirect(url_for('index'))
+            flash('无效的会话。', 'danger')
+            return redirect(url_for('show_intro', group_number=1))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -41,25 +41,40 @@ def generate_unique_participant_number():
 
 
 
+'''@app.route('/')
+def index(group_number = 1):
+    return render_template('index.html')'''
 
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 
-@app.route('/start', methods=['POST'])
-def start():
+
+@app.route('/intro/<int:group_number>')
+def show_intro(group_number):
+    if group_number < 1 or group_number > 7:
+        flash('无效组别编号。', 'danger')
+        # Fallback to group_number=1 instead of "index"
+        return redirect(url_for('show_intro', group_number=1))
+    return render_template('index.html', group_number=group_number)
+
+
+@app.route('/initial_selection/<int:group_number>', methods=['GET', 'POST'])
+def initial_selection(group_number):
+    if group_number < 1 or group_number > 7:
+        flash('无效组别编号。', 'danger')
+        redirect(url_for('show_intro', group_number=1))
     try:
         participant_number = generate_unique_participant_number()
     except ValueError as e:
         flash(str(e), 'danger')
-        return redirect(url_for('index'))
-    group_number = random.randint(1, 7)
+        redirect(url_for('show_intro', group_number=1))
+
     participant = Participant(participant_number=participant_number, group_number=group_number)
     db.session.add(participant)
     db.session.commit()
     session['participant_number'] = participant_number
     login_user(participant)
+
+    # Redirect to category selection or wherever you need next
     return redirect(url_for('select_categories'))
 
 
@@ -98,7 +113,6 @@ def submit_categories():
         try:
             # Remove existing preferences for round 1 if any
             Preference.query.filter_by(participant_number=participant_number, round_number=1).delete()
-            
             for category_id, rating in zip(selected_ids, ratings):
                 preference = Preference(
                     participant_number=participant_number,
@@ -116,7 +130,7 @@ def submit_categories():
             return redirect(url_for('select_categories'))
     else:
         flash('参与者未找到。', 'danger')
-        return redirect(url_for('index'))
+        return redirect(url_for('show_intro', group_number=1))
 
 
 
@@ -129,6 +143,25 @@ def next_step():
     preferences = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
     selected_categories = [pref.category.name for pref in preferences]
     return render_template('video_viewing_1.html', selected_categories=selected_categories)
+
+
+
+@app.route('/end_video_viewing_1')
+@login_required_custom
+def end_video_viewing_1():
+    participant_number = session.get('participant_number')
+    participant = Participant.query.get(participant_number)
+    if not participant:
+        flash('参与者未找到。', 'danger')
+        redirect(url_for('show_intro', group_number=1))
+
+    if participant.group_number == 1:
+        # Control group -> coping strategy
+        return redirect(url_for('coping_strategy'))
+    else:
+        # Groups 2-7 -> persuasive techniques
+        return redirect(url_for('persuasive_techniques'))
+
 
 
 """@app.route('/proxy_video')
@@ -479,6 +512,234 @@ def get_videos():
 def select_categories():
     categories = VideoCategory.query.all()
     return render_template('select_categories.html', categories=categories)
+
+
+
+@app.route('/coping_strategy', methods=['GET', 'POST'])
+@login_required_custom
+def coping_strategy():
+    if request.method == 'POST':
+        chosen_strategy = request.form.get('strategy')
+        participant_number = session.get('participant_number')
+        if not participant_number:
+            flash('未找到参与者信息。', 'danger')
+            return redirect(url_for('index'))
+
+        # Record user’s chosen strategy
+        from models import CopingStrategy  # Import only if not present at top
+        new_strategy = CopingStrategy(
+            participant_number=participant_number,
+            strategy=chosen_strategy
+        )
+        db.session.add(new_strategy)
+        db.session.commit()
+
+        # Redirect based on strategy
+        if chosen_strategy == 'watch_other':
+            # Exclude previously chosen categories and let user pick again
+            return redirect(url_for('select_categories_round2'))
+        elif chosen_strategy == 'learn_more':
+            return redirect(url_for('info_cocoons'))
+        else:
+            # 'avoidance' -> watch same categories
+            return redirect(url_for('continue_same_categories'))    
+
+    return render_template('coping_strategy.html')
+
+
+
+
+
+@app.route('/select_categories_round2', methods=['GET'])
+@login_required_custom
+def select_categories_round2():
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        flash('未找到参与者信息。', 'danger')
+        redirect(url_for('show_intro', group_number=1))
+    
+    # Get already selected categories from round 1
+    selected_round1 = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
+    selected_round1_ids = [pref.category_id for pref in selected_round1]
+    
+    # Get remaining categories excluding round 1 selections
+    remaining_categories = VideoCategory.query.filter(~VideoCategory.id.in_(selected_round1_ids)).all()
+    
+    return render_template('select_categories_round2.html', categories=remaining_categories)
+
+@app.route('/submit_categories_round2', methods=['POST'])
+@login_required_custom
+def submit_categories_round2():
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        flash('未找到参与者信息。', 'danger')
+        redirect(url_for('show_intro', group_number=1))
+    
+    # Extract category ratings from form
+    selected_ids = []
+    ratings = []
+    
+    for key, value in request.form.items():
+        if key.startswith('rating_'):
+            try:
+                category_id = int(key.split('_')[1])
+                rating = int(value)
+                if rating > 0:
+                    selected_ids.append(category_id)
+                    ratings.append(rating)
+            except (IndexError, ValueError):
+                flash('无效的类别ID或评分。', 'danger')
+                return redirect(url_for('select_categories_round2'))
+    
+    # Validate that exactly three categories are selected
+    if len(selected_ids) != 3:
+        flash('请确保选择了三个类别并为其分配评分。', 'danger')
+        return redirect(url_for('select_categories_round2'))
+    
+    # Validate that all ratings are between 1 and 10
+    if not all(1 <= rating <= 10 for rating in ratings):
+        flash('评分必须在1到10之间。', 'danger')
+        return redirect(url_for('select_categories_round2'))
+    
+    try:
+        # Remove existing preferences for round 2 if any
+        Preference.query.filter_by(participant_number=participant_number, round_number=2).delete()
+        
+        for category_id, rating in zip(selected_ids, ratings):
+            preference = Preference(
+                participant_number=participant_number,
+                round_number=2,  # Second round
+                category_id=category_id,
+                rating=rating
+            )
+            db.session.add(preference)
+        db.session.commit()
+        flash('第二轮类别已成功提交。', 'success')
+        redirect(url_for('show_intro', group_number=1))
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error in submit_categories_round2: {e}")
+        flash('提交时发生错误，请稍后再试。', 'danger')
+        return redirect(url_for('select_categories_round2'))
+
+
+
+@app.route('/video_viewing_2')
+@login_required_custom
+def video_viewing_2():
+    participant_number = session.get('participant_number')
+    preferences_round2 = Preference.query.filter_by(participant_number=participant_number, round_number=2).all()
+    selected_categories = [pref.category.name for pref in preferences_round2]
+    return render_template('video_viewing_2.html', selected_categories=selected_categories)
+
+
+
+@app.route('/api/videos_round2')
+@login_required_custom
+def get_videos_round2():
+    categories = request.args.get('categories')
+    limit = 3  # Total number of videos (one from each category)
+    category_names = categories.split(',')
+
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        return jsonify({'error': 'Participant not found.'}), 400
+
+    # Ensure that selected categories are exactly 3
+    if len(category_names) != 3:
+        return jsonify({'error': 'Exactly three categories must be selected.'}), 400
+
+    # Get category IDs
+    categories = VideoCategory.query.filter(VideoCategory.name.in_(category_names)).all()
+    category_ids = {cat.name: cat.id for cat in categories}
+
+    videos_data = []
+    for category_name in category_names:
+        cat_id = category_ids.get(category_name)
+        if not cat_id:
+            continue
+        # Exclude videos already watched in round 1
+        watched_videos_round1 = WatchingTime.query.join(Video).filter(
+            WatchingTime.participant_number == participant_number,
+            WatchingTime.round_number == 1,
+            Video.category_id == cat_id
+        ).with_entities(Video.id).all()
+        watched_video_ids = [vid.id for vid in watched_videos_round1]
+
+        videos_query = Video.query.filter_by(category_id=cat_id).filter(~Video.id.in_(watched_video_ids)).all()
+        if not videos_query:
+            # If all videos have been watched, allow repeats or handle accordingly
+            videos_query = Video.query.filter_by(category_id=cat_id).all()
+
+        if len(videos_query) == 0:
+            continue
+
+        selected_video = random.choice(videos_query)
+        videos_data.append({
+            'id': selected_video.id,
+            'title': selected_video.title,
+            'link': selected_video.url,
+        })
+
+    return jsonify({'videos': videos_data})
+
+
+@app.route('/end_video_viewing_2')
+@login_required_custom
+def end_video_viewing_2():
+    # Implement the logic after second video viewing
+    # For example, redirect to a thank you page or next part of the study
+    flash('感谢您的参与！', 'success')
+    return "redirect(url_for('end_study'))"
+
+
+
+@app.route('/info_cocoons')
+@login_required_custom 
+def info_cocoons():
+    video_link = "https://www.douyin.com/video/7277534527801576704"
+    return render_template('info_cocoons.html', video_link=video_link)
+
+
+@app.route('/continue_same_categories')
+@login_required_custom
+def continue_same_categories():
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        return redirect(url_for('show_intro', group_number=1))
+
+    # Fetch the participant’s initial category preferences
+    prefs_round1 = Preference.query.filter_by(participant_number=participant_number, round_number=1).all()
+    if len(prefs_round1) != 3:
+        flash('尚未完成初次类别选择。', 'danger')
+        return redirect(url_for('select_categories'))
+
+    selected_categories = [pref.category.name for pref in prefs_round1]
+    chosen_videos = []
+    for pref in prefs_round1:
+        # Exclude previously watched videos
+        watched_videos = WatchingTime.query.join(Video).filter(
+            WatchingTime.participant_number == participant_number,
+            WatchingTime.round_number == 1,
+            Video.category_id == pref.category_id
+        ).with_entities(Video.id).all()
+        watched_ids = [x.id for x in watched_videos]
+        video_query = Video.query.filter_by(category_id=pref.category_id).filter(
+            ~Video.id.in_(watched_ids)
+        ).all()
+        if not video_query:
+            # If no unwatched videos remain, allow repeats or handle accordingly
+            video_query = Video.query.filter_by(category_id=pref.category_id).all()
+        if video_query:
+            video = random.choice(video_query)
+            chosen_videos.append({
+                'id': video.id,
+                'title': video.title,
+                'link': video.url,
+            })
+
+    return render_template('continue_same_categories.html', videos=chosen_videos, selected_categories=selected_categories)
+
 
 
 

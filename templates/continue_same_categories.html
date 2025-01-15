@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>视频观看页面</title>
+    <title>继续相同类别的视频观看</title>
     <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
     <style>
@@ -29,9 +29,9 @@
             align-items: center;
             position: relative;
             margin: 1rem 0;
-            width: 100vw; /* Full viewport width */
-            height: 80vh; /* Occupies 80% of viewport height */
-            background-color: #000; /* Optional: Add a background to highlight the video */
+            width: 100vw;
+            height: 80vh;
+            background-color: #000;
         }
         
         .video-container video {
@@ -42,20 +42,14 @@
             object-fit: cover;
         }
 
-        /* Remove existing iframe styles if present */
-        .video-container iframe {
-            display: none;
-        }
-
-        /* Custom Play/Pause Button */
         .controls {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             display: flex;
-            visibility: hidden; /* Initially hidden */
-            z-index: 2; /* Ensure controls are above the video */
+            visibility: hidden;
+            z-index: 2;
         }
 
         .video-container:hover .controls {
@@ -66,7 +60,7 @@
             font-family: 'Material Icons Outlined';
             font-weight: normal;
             font-style: normal;
-            font-size: 24px;  /* Adjust size as needed */
+            font-size: 24px;
             line-height: 1;
             letter-spacing: normal;
             text-transform: none;
@@ -104,8 +98,17 @@
             font-size: 1rem;
             margin: 0 10px;
             cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
         }
-        
+
+        #prevBtn:hover, #nextBtn:hover {
+            background-color: #0056b3;
+        }
+
         .reactions {
             text-align: center;
             margin: 10px 0;
@@ -130,21 +133,6 @@
             transition: color 0.3s;
         }
 
-        /* Like button pressed -> blue */
-        .reactions button.like-btn.like .material-icons-outlined {
-            color: #0d6efd;
-        }
-
-        /* Dislike button pressed -> red */
-        .reactions button.dislike-btn.dislike .material-icons-outlined {
-            color: #dc3545; 
-        }
-
-        /* Star button pressed -> gold */
-        .reactions button.star-btn.star .material-icons-outlined {
-            color: #ffc107; 
-        }
-        
         .comments-section {
             max-width: 1200px;
             margin: 0 auto;
@@ -174,20 +162,35 @@
             padding: 8px 16px;
             font-size: 1rem;
             cursor: pointer;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .comments-section button:hover {
+            background-color: #218838;
         }
     </style>
 </head>
 <body>
-    <div id="progress">为您推荐: 1 / 20</div>
+    <div id="progress">为您推荐: 1 / {{ videos|length }}</div>
 
-    <div class="video-container" id="videoContainer">
+    {% for video in videos %}
+    <div class="video-container" id="videoContainer{{ loop.index }}">
         <!-- Single Toggle Play/Pause Button -->
+        <video id="videoFrame{{ loop.index }}" width="640" height="360" controls>
+            <source src="{{ url_for('stream_video') }}?url={{ video.link | urlencode }}" type="video/mp4">
+            您的浏览器不支持 HTML5 video 标签.
+        </video>
         <div class="controls">
-            <button id="playPauseBtn" title="播放">
+            <button id="playPauseBtn{{ loop.index }}" title="播放">
                 <span class="material-icons-outlined">play_arrow</span>
             </button>
         </div>
     </div>
+    {% endfor %}
     
     <div class="reactions">
         <button id="likeBtn" class="like-btn" title="喜欢">
@@ -216,7 +219,7 @@
     
     <script>
         const selectedCategories = {{ selected_categories | tojson }};
-        let videos = [];
+        let videos = {{ videos|tojson }};
         let currentIndex = 0;
         let watchStartTime = null;
         let watchTime = 0;
@@ -229,17 +232,12 @@
         const dislikeBtn = document.getElementById('dislikeBtn');
         const starBtn = document.getElementById('starBtn');
         const commentForm = document.getElementById('commentForm');
-        let playPauseBtn = document.getElementById('playPauseBtn'); // Changed to let for reassignment
-
-        let videoElement = null; // Current video element
 
         // Function to get the current video's database ID
         const currentVideoId = () => videos[currentIndex].id;
 
         // Function to send interaction data to the backend
         function sendInteraction(action, commentText = '') {
-            console.log('Sending Interaction:', { video_id: currentVideoId(), action, comment: commentText });
-
             return fetch('/api/user_interaction', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -320,129 +318,6 @@
             });
         });
 
-        // Fetch videos based on selected categories
-        fetch(`/api/videos?categories=${selectedCategories.join(',')}`)
-            .then(response => response.json())
-            .then(data => {
-                videos = data.videos;
-                //console.log('Fetched videos:', videos);
-                if (videos.length > 0) {
-                    showVideo(currentIndex);
-                    updateProgress();
-                } else {
-                    document.getElementById('videoContainer').innerHTML = '<p>暂无视频可显示。</p>';
-                    document.getElementById('nextBtn').disabled = true;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching videos:', error);
-            });
-
-        async function getVideoLink(originalLink) {
-            const encodedLink = encodeURIComponent(originalLink);
-            return `/stream_video?url=${encodedLink}`;   
-        }
-
-        async function showVideo(index) {
-            if (watchStartTime !== null) {
-                sendWatchTime();
-            }
-
-            const video = videos[index];
-            const videoContainer = document.getElementById('videoContainer');
-            const embedUrl = await getVideoLink(video.link);
-            videoContainer.innerHTML = `
-                <video id="videoFrame" width="640" height="360" controls>
-                    <source src="${embedUrl}" type="video/mp4">
-                    您的浏览器不支持 HTML5 video 标签.
-                </video>
-                <div class="controls">
-                    <button id="playPauseBtn" title="播放">
-                        <span class="material-icons-outlined">play_arrow</span>
-                    </button>
-                </div>
-            `;
-            videoElement = document.getElementById('videoFrame');
-            playPauseBtn = document.getElementById('playPauseBtn'); // Reassign playPauseBtn
-
-            // Ensure the video starts paused
-            videoElement.pause();
-            isPlaying = false;
-            playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
-            playPauseBtn.setAttribute('title', '播放');
-            resetWatchTime();
-
-            // Remove existing event listeners by cloning the video element
-            const clonedVideo = videoElement.cloneNode(true);
-            videoElement.parentNode.replaceChild(clonedVideo, videoElement);
-            videoElement = clonedVideo;
-
-            // Add event listeners to the new video element
-            videoElement.addEventListener('play', handlePlay);
-            videoElement.addEventListener('pause', handlePause);
-            videoElement.addEventListener('ended', handleEnded);
-
-
-            document.getElementById('nextBtn').innerText = "下一个";
-            if (index === videos.length - 1) {
-            document.getElementById('nextBtn').innerText = "继续下一步";
-            } 
-
-            // Add event listener to the new play/pause button
-            playPauseBtn.addEventListener('click', togglePlayPause);
-
-            document.getElementById('prevBtn').disabled = index === 0;
-            //document.getElementById('nextBtn').disabled = index === videos.length - 1;
-            updateProgress();
-            // Reset reaction buttons
-            likeBtn.classList.remove('like');
-            dislikeBtn.classList.remove('dislike');
-            starBtn.classList.remove('star');
-            updateUI();
-        }
-
-        // Toggle Play/Pause Function
-        function togglePlayPause() {
-            if (isPlaying) {
-                videoElement.pause();
-            } else {
-                videoElement.play();
-            }
-        }
-
-        // Handler functions for video events
-        function handlePlay() {
-            isPlaying = true;
-            watchStartTime = Date.now();
-            playPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
-            playPauseBtn.setAttribute('title', '暂停');
-        }
-
-        function handlePause() {
-            if (isPlaying) {
-                sendWatchTime();
-                isPlaying = false;
-                playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
-                playPauseBtn.setAttribute('title', '播放');
-            }
-        }
-
-        function handleEnded() {
-            sendWatchTime();
-            isPlaying = false;
-            playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
-            playPauseBtn.setAttribute('title', '播放');
-            
-            if (currentIndex >= videos.length - 1) {
-                window.location.href = "{{ url_for('end_video_viewing_1') }}";
-            }
-        }
-
-        // Function to update progress display
-        function updateProgress() {
-            document.getElementById('progress').textContent = `${currentIndex + 1} / ${videos.length}`;
-        }
-
         // Event listeners for navigation buttons
         document.getElementById('prevBtn').addEventListener('click', () => {
             if (currentIndex > 0) {
@@ -453,17 +328,77 @@
         
         document.getElementById('nextBtn').addEventListener('click', () => {
             if (currentIndex >= videos.length - 1) {
-                window.location.href = "{{ url_for('end_video_viewing_1') }}";
+                window.location.href = "{{ url_for('end_video_viewing_2') }}";
             } else {
                 currentIndex++;
                 showVideo(currentIndex);
             }
         });
 
+        function showVideo(index) {
+            videos.forEach((video, i) => {
+                const container = document.getElementById(`videoContainer${i + 1}`);
+                if (i === index) {
+                    container.style.display = 'flex';
+                } else {
+                    container.style.display = 'none';
+                }
+            });
+            updateProgress();
+            resetWatchTime();
+        }
+
+        // Initialize the first video
+        showVideo(currentIndex);
+
+        // Toggle Play/Pause Function for current video
+        function togglePlayPause(videoIndex) {
+            const videoElement = document.getElementById(`videoFrame${videoIndex + 1}`);
+            const playPauseBtn = document.getElementById(`playPauseBtn${videoIndex + 1}`);
+            if (videoElement.paused) {
+                videoElement.play();
+                isPlaying = true;
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
+                playPauseBtn.setAttribute('title', '暂停');
+                watchStartTime = Date.now();
+            } else {
+                videoElement.pause();
+                isPlaying = false;
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+                playPauseBtn.setAttribute('title', '播放');
+                sendWatchTime();
+            }
+        }
+
+        // Attach play/pause buttons
+        videos.forEach((video, i) => {
+            const playPauseBtn = document.getElementById(`playPauseBtn${i + 1}`);
+            playPauseBtn.addEventListener('click', () => togglePlayPause(i));
+            const videoElement = document.getElementById(`videoFrame${i + 1}`);
+            videoElement.addEventListener('play', () => {
+                isPlaying = true;
+                watchStartTime = Date.now();
+            });
+            videoElement.addEventListener('pause', () => {
+                if (isPlaying) {
+                    sendWatchTime();
+                    isPlaying = false;
+                }
+            });
+            videoElement.addEventListener('ended', () => {
+                sendWatchTime();
+                isPlaying = false;
+                if (i === videos.length - 1) {
+                    window.location.href = "{{ url_for('end_video_viewing_2') }}";
+                }
+            });
+        });
+
+        // Function to send watch time
         function sendWatchTime() {
             if (watchStartTime !== null) {
                 const currentTime = Date.now();
-                const duration = Math.round(((currentTime - watchStartTime) / 1000) * 100) / 100; // seconds
+                const duration = Math.round(((currentTime - watchStartTime) / 1000) * 100) / 100;
                 watchTime += duration;
                 watchStartTime = null;
 
@@ -474,7 +409,7 @@
                         body: JSON.stringify({
                             video_id: currentVideoId(),
                             watch_duration: watchTime,
-                            round_number: 1
+                            round_number: 2
                         })
                     })
                     .then(response => response.json())
@@ -494,10 +429,10 @@
             watchTime = 0;
         }
 
-        // Initialize tracking when the page loads
-        window.addEventListener('load', () => {
-            // Initialization already handled in fetch videos
-        });
+        // Function to update progress display
+        function updateProgress() {
+            document.getElementById('progress').textContent = `为您推荐: ${currentIndex + 1} / ${videos.length}`;
+        }
     </script>
 </body>
 </html>
