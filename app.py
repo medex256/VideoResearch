@@ -510,7 +510,7 @@ def get_videos():
 @app.route('/select_categories')
 @login_required_custom
 def select_categories():
-    categories = VideoCategory.query.all()
+    categories = VideoCategory.query.filter(VideoCategory.name != 'info').all()
     return render_template('select_categories.html', categories=categories)
 
 
@@ -563,7 +563,10 @@ def select_categories_round2():
     selected_round1_ids = [pref.category_id for pref in selected_round1]
     
     # Get remaining categories excluding round 1 selections
-    remaining_categories = VideoCategory.query.filter(~VideoCategory.id.in_(selected_round1_ids)).all()
+    remaining_categories = VideoCategory.query.filter(
+        VideoCategory.name != 'info',
+        ~VideoCategory.id.in_(selected_round1_ids)
+    ).all()
     
     return render_template('select_categories_round2.html', categories=remaining_categories)
 
@@ -739,6 +742,35 @@ def continue_same_categories():
             })
 
     return render_template('continue_same_categories.html', videos=chosen_videos, selected_categories=selected_categories)
+
+
+
+
+
+'''@app.route('/add_info_video')
+def add_info_video():
+    # Check if 'info' category already exists
+    info_cat = VideoCategory.query.filter_by(name='info').first()
+    if not info_cat:
+        info_cat = VideoCategory(
+            name='info',
+            name_cn='信息视频',
+        )
+        db.session.add(info_cat)
+        db.session.commit()
+
+    # Check if the video already exists
+    existing_video = Video.query.filter_by(url='https://www.douyin.com/video/7277534527801576704').first()
+    if not existing_video:
+        info_video = Video(
+            title='信息茧房介绍',
+            url='https://www.douyin.com/video/7277534527801576704',
+            category_id=info_cat.id
+        )
+        db.session.add(info_video)
+        db.session.commit()
+
+    return 'Info video added successfully.''''
 
 
 

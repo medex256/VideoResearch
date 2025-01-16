@@ -3,36 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <title>了解更多信息茧房知识</title>
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
     <style>
-        /* CSS Styles */
-        .video-container {
-            display: none;
-            margin-top: 20px;
+        /* Page structure to match other video pages */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
-        .btn-primary {
+        
+        .video-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 1rem 0;
+            width: 100vw;
+            height: 80vh;
+            background-color: #000;
+        }
+        
+        .video-container video {
+            width: 360px;
+            height: 640px;
+            max-width: 50%;
+            max-height: 50%;
+            object-fit: cover;
+        }
+        
+        /* Custom Play/Pause Button */
+        .controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            visibility: hidden;
+            z-index: 2;
+        }
+        .video-container:hover .controls {
+            visibility: visible;
+        }
+        .material-icons-outlined {
+            font-size: 24px;
+            color: white;
+        }
+        .controls button {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .controls button:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .reactions {
+            text-align: center;
+            margin: 10px 0;
+        }
+        .reactions button {
+            background: none;
+            border: none;
+            margin: 0 15px;
+            width: 80px;
+            height: 80px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.3s;
+            outline: none;
+            color: #000;
+        }
+        .reactions button .material-icons-outlined {
+            font-size: 3rem; 
+            transition: color 0.3s;
+        }
+        .like-btn.like .material-icons-outlined {
+            color: #0d6efd;
+        }
+        .dislike-btn.dislike .material-icons-outlined {
+            color: #dc3545; 
+        }
+        .star-btn.star .material-icons-outlined {
+            color: #ffc107; 
+        }
+
+        .comments-section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .comments-section h3 {
+            margin-bottom: 10px;
+        }
+        .comments-section form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .comments-section textarea {
+            resize: vertical;
+            padding: 10px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            min-height: 100px;
+        }
+        .comments-section button {
+            align-self: flex-end;
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Next button to proceed */
+        .next-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+        .next-container button {
             padding: 10px 20px;
-            font-size: 1.2rem;
+            font-size: 1rem;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5 text-center">
-        <h2 class="mb-4">信息茧房知识</h2>
-        <button id="showVideoBtn" class="btn btn-primary">了解更多信息茧房知识</button>
-        
-        <div class="video-container" id="videoContainer">
-            <video width="640" height="360" controls>
-                <source src="{{ url_for('stream_video', url=video_link)}}" type="video/mp4">
-                您的浏览器不支持 HTML5 video 标签.
-            </video>
+    <!-- Single video container to showcase info content -->
+    <div class="video-container" id="infoVideoContainer">
+        <video id="infoVideo" width="640" height="360" controls>
+            <!-- Using 'info' category or special ID's link for streaming -->
+            <source src="{{ url_for('stream_video', url=video_link) }}" type="video/mp4">
+            您的浏览器不支持 HTML5 video 标签.
+        </video>
+        <div class="controls">
+            <button id="playPauseBtn" title="播放">
+                <span class="material-icons-outlined">play_arrow</span>
+            </button>
         </div>
     </div>
-    
+
+    <!-- Reactions: like/dislike/star -->
+    <div class="reactions">
+        <button id="likeBtn" class="like-btn" title="喜欢">
+            <span class="material-icons-outlined">thumb_up</span>
+        </button>
+        <button id="dislikeBtn" class="dislike-btn" title="不喜欢">
+            <span class="material-icons-outlined">thumb_down</span>
+        </button>
+        <button id="starBtn" class="star-btn" title="收藏">
+            <span class="material-icons-outlined">star_rate</span>
+        </button>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="comments-section">
+        <h3>评论</h3>
+        <form id="commentForm">
+            <textarea id="commentInput" placeholder="在这里输入你的评论..." required></textarea>
+            <button type="submit">提交评论</button>
+        </form>
+    </div>
+
+    <!-- Next button: leads to the next stage or a new page about info cocoons -->
+    <div class="next-container">
+        <button id="nextBtn">下一步</button>
+    </div>
+
     <script>
-        document.getElementById('showVideoBtn').addEventListener('click', function() {
-            document.getElementById('videoContainer').style.display = 'block';
-            this.style.display = 'none';
+        // Example "info" video_id you might store in the DB
+        // so you can link watch-time to "info" category.
+        const infoVideoId = 9999;  // Or fetch from server if needed.
+        let isPlaying = false;
+        let watchStartTime = null;
+        let watchTime = 0;
+        
+        // Video, controls, and button references
+        const infoVideo = document.getElementById('infoVideo');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+
+        // Reaction buttons
+        const likeBtn = document.getElementById('likeBtn');
+        const dislikeBtn = document.getElementById('dislikeBtn');
+        const starBtn = document.getElementById('starBtn');
+
+        // Comment form
+        const commentForm = document.getElementById('commentForm');
+        const commentInput = document.getElementById('commentInput');
+
+        // Toggling Play/Pause
+        function togglePlayPause() {
+            if (isPlaying) {
+                infoVideo.pause();
+            } else {
+                infoVideo.play();
+            }
+        }
+        playPauseBtn.addEventListener('click', togglePlayPause);
+
+        // Video event listeners
+        infoVideo.addEventListener('play', () => {
+            isPlaying = true;
+            watchStartTime = Date.now();
+            playPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
+            playPauseBtn.setAttribute('title', '暂停');
+        });
+        infoVideo.addEventListener('pause', () => {
+            if (isPlaying) {
+                recordWatchTime();
+                isPlaying = false;
+                playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+                playPauseBtn.setAttribute('title', '播放');
+            }
+        });
+        infoVideo.addEventListener('ended', () => {
+            recordWatchTime();
+            isPlaying = false;
+            playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+            playPauseBtn.setAttribute('title', '播放');
+        });
+
+        // Record watch time (e.g., round_number=3 if needed)
+        function recordWatchTime() {
+            if (watchStartTime !== null) {
+                const duration = (Date.now() - watchStartTime) / 1000;
+                watchTime += duration;
+                watchStartTime = null;
+                fetch('/api/record_watch_time', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_id: infoVideoId,
+                        watch_duration: Math.round(watchTime * 100) / 100,
+                        round_number: 3
+                    })
+                })
+                .catch(error => console.error('Error recording watch time:', error));
+                watchTime = 0;
+            }
+        }
+
+        // Interaction endpoints
+        function sendInteraction(action, commentText = '') {
+            fetch('/api/user_interaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    video_id: infoVideoId,
+                    action: action,
+                    comment: commentText
+                })
+            })
+            .catch(error => console.error('Error sending interaction:', error));
+        }
+
+        // Reaction buttons
+        likeBtn.addEventListener('click', () => {
+            if (likeBtn.classList.contains('like')) {
+                likeBtn.classList.remove('like');
+                sendInteraction('remove_like');
+            } else {
+                likeBtn.classList.add('like');
+                if (dislikeBtn.classList.contains('dislike')) {
+                    dislikeBtn.classList.remove('dislike');
+                    sendInteraction('remove_dislike');
+                }
+                sendInteraction('like');
+            }
+        });
+
+        dislikeBtn.addEventListener('click', () => {
+            if (dislikeBtn.classList.contains('dislike')) {
+                dislikeBtn.classList.remove('dislike');
+                sendInteraction('remove_dislike');
+            } else {
+                dislikeBtn.classList.add('dislike');
+                if (likeBtn.classList.contains('like')) {
+                    likeBtn.classList.remove('like');
+                    sendInteraction('remove_like');
+                }
+                sendInteraction('dislike');
+            }
+        });
+
+        starBtn.addEventListener('click', () => {
+            if (starBtn.classList.contains('star')) {
+                starBtn.classList.remove('star');
+                sendInteraction('star_remove');
+            } else {
+                starBtn.classList.add('star');
+                sendInteraction('star');
+            }
+        });
+
+        // Comments
+        commentForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const commentText = commentInput.value.trim();
+            if (!commentText) return;
+            sendInteraction('comment', commentText);
+            commentInput.value = '';
+            alert('评论已提交。');
+        });
+
+        // Next button -> new page with more info or next step
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            // In your app.py, define a route for the next stage (e.g. “info_cocoons_more”)
+            // Then route the user there. For now, just an example redirect:
+            window.location.href = "{{ url_for('select_categories_after_info_cocoons_round2') }}";
         });
     </script>
 </body>
