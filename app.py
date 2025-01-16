@@ -576,7 +576,7 @@ def submit_categories_round2():
     participant_number = session.get('participant_number')
     if not participant_number:
         flash('未找到参与者信息。', 'danger')
-        redirect(url_for('show_intro', group_number=1))
+        return redirect(url_for('show_intro', group_number=1))
     
     # Extract category ratings from form
     selected_ids = []
@@ -618,7 +618,7 @@ def submit_categories_round2():
             db.session.add(preference)
         db.session.commit()
         flash('第二轮类别已成功提交。', 'success')
-        redirect(url_for('show_intro', group_number=1))
+        return redirect(url_for('video_viewing_2'))
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error in submit_categories_round2: {e}")
@@ -693,7 +693,7 @@ def end_video_viewing_2():
     # Implement the logic after second video viewing
     # For example, redirect to a thank you page or next part of the study
     flash('感谢您的参与！', 'success')
-    return "redirect(url_for('end_study'))"
+    return redirect(url_for('end_study'))
 
 
 
@@ -770,10 +770,142 @@ def add_info_video():
         db.session.add(info_video)
         db.session.commit()
 
-    return 'Info video added successfully.''''
+    return 'Info video added successfully.'''
 
 
 
+
+
+@app.route('/select_categories_after_info_cocoons_round2', methods=['GET'])
+@login_required_custom
+def select_categories_after_info_cocoons_round2():
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        flash('未找到参与者信息。', 'danger')
+        return redirect(url_for('show_intro', group_number=1))
+    
+    # simply allow selection from all categories again if that's the requirement
+    remaining_categories = VideoCategory.query.filter(VideoCategory.name != 'info').all()
+    
+    return render_template('select_categories_after_info_cocoons_round2.html', categories=remaining_categories)
+
+
+
+
+
+@app.route('/submit_categories_after_info_cocoons_round2', methods=['POST'])
+@login_required_custom
+def submit_categories_after_info_cocoons_round2():
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        flash('未找到参与者信息。', 'danger')
+        return redirect(url_for('show_intro', group_number=1))
+    
+    selected_ids = []
+    ratings = []
+    
+    for key, value in request.form.items():
+        if key.startswith('rating_'):
+            try:
+                category_id = int(key.split('_')[1])
+                rating = int(value)
+                if rating > 0:
+                    selected_ids.append(category_id)
+                    ratings.append(rating)
+            except (IndexError, ValueError):
+                flash('无效的类别ID或评分。', 'danger')
+                return redirect(url_for('select_categories_after_info_cocoons_round2'))
+    
+    if len(selected_ids) != 3:
+        flash('请确保选择了三个类别并为其分配评分。', 'danger')
+        return redirect(url_for('select_categories_after_info_cocoons_round2'))
+    
+    if not all(1 <= rating <= 10 for rating in ratings):
+        flash('评分必须在1到10之间。', 'danger')
+        return redirect(url_for('select_categories_after_info_cocoons_round2'))
+    
+    try:
+        Preference.query.filter_by(participant_number=participant_number, round_number=2).delete()
+        for category_id, rating in zip(selected_ids, ratings):
+            preference = Preference(
+                participant_number=participant_number,
+                round_number=2,
+                category_id=category_id,
+                rating=rating
+            )
+            db.session.add(preference)
+        db.session.commit()
+        flash('第二次信息视频后类别选择已成功提交。', 'success')
+        return redirect(url_for('video_viewing_after_info_cocoons_2'))
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error in submit_categories_after_info_cocoons_round2: {e}")
+        flash('提交时发生错误，请稍后再试。', 'danger')
+        return redirect(url_for('select_categories_after_info_cocoons_round2'))
+    
+
+
+
+@app.route('/video_viewing_after_info_cocoons_2')
+@login_required_custom
+def video_viewing_after_info_cocoons_2():
+    participant_number = session.get('participant_number')
+    preferences_after_info = Preference.query.filter_by(participant_number=participant_number, round_number=2).all()
+    selected_categories = [pref.category.name for pref in preferences_after_info]
+    return render_template('video_viewing_after_info_cocoons_2.html', selected_categories=selected_categories)
+
+
+@app.route('/api/videos_after_info_cocoons_round2')
+@login_required_custom
+def get_videos_after_info_cocoons_round2():
+    categories = request.args.get('categories')
+    limit = 3  # 3 videos total
+    category_names = categories.split(',')
+
+    participant_number = session.get('participant_number')
+    if not participant_number:
+        return jsonify({'error': 'Participant not found.'}), 400
+
+    if len(category_names) != 3:
+        return jsonify({'error': 'Exactly three categories must be selected.'}), 400
+
+    cat_objs = VideoCategory.query.filter(VideoCategory.name.in_(category_names)).all()
+    category_ids = {cat.name: cat.id for cat in cat_objs}
+
+    videos_data = []
+    for category_name in category_names:
+        cat_id = category_ids.get(category_name)
+        if not cat_id:
+            continue
+        watched_videos_round1 = WatchingTime.query.join(Video).filter(
+            WatchingTime.participant_number == participant_number,
+            WatchingTime.round_number == 1,  # Exclude previously watched, if desired
+            Video.category_id == cat_id
+        ).with_entities(Video.id).all()
+        watched_ids = [vid.id for vid in watched_videos_round1]
+        possible_videos = Video.query.filter_by(category_id=cat_id).filter(~Video.id.in_(watched_ids)).all()
+        if not possible_videos:
+            # Fallback if user watched all
+            possible_videos = Video.query.filter_by(category_id=cat_id).all()
+
+        selected_video = random.choice(possible_videos) if possible_videos else None
+        if selected_video:
+            videos_data.append({
+                'id': selected_video.id,
+                'title': selected_video.title,
+                'link': selected_video.url,
+            })
+
+    return jsonify({'videos': videos_data})
+
+
+
+
+@app.route('/end_study')
+@login_required_custom
+def end_study():
+    participant_number = session.get('participant_number')
+    return render_template('end_study.html', participant_number=participant_number)
 
 @app.route('/test_embed')
 @login_required_custom
