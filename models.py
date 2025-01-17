@@ -68,7 +68,6 @@ class MessageTime(db.Model):
     time_spent = db.Column(db.Float, nullable=False)  # Time in seconds
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ... existing imports ...
 
 class WatchingTime(db.Model):
     id = db.Column(db.Integer, primary_key=True)

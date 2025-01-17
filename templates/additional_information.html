@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}附加信息{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h4 class="mb-4">额外提示</h4>
+    <p class="fs-5" style="white-space: pre-line;">{{ message }}</p>
+
+    {% if group_num == 5 %}
+      <form method="POST">
+        <div class="mb-3">
+          <label>请问您在多大程度上同意信息茧房可能对您造成上述危害（0表示完全不同意，10表示完全同意）:</label>
+          <input type="range" min="0" max="10" name="q1" required>
+        </div>
+        <div class="mb-3">
+          <label>请问您在多大程度上同意观看多类型视频是保护自己远离信息茧房的有效手段（0表示完全不同意，10表示完全同意）:</label>
+          <input type="range" min="0" max="10" name="q2" required>
+        </div>
+        <button type="submit" class="btn btn-primary">继续</button>
+      </form>
+    {% else %}
+      <form method="POST">
+        <button type="submit" class="btn btn-primary">继续</button>
+      </form>
+    {% endif %}
+
+    <script>
+        let startTime = Date.now();
+        const form = document.getElementById('infoForm');
+        form.addEventListener('submit', () => {
+          const endTime = Date.now();
+          const duration = ((endTime - startTime) / 1000).toFixed(2);
+          document.getElementById('timeSpentInput').value = duration;
+        });
+      </script>
+</div>
+{% endblock %}

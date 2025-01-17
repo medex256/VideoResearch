@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_user, login_required, current_user
 from config import app, db
 from functools import wraps
 from collections import Counter
-from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime
+from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime,CopingStrategy,ConsistencyAnswer
 
 
 
@@ -154,13 +154,7 @@ def end_video_viewing_1():
     if not participant:
         flash('参与者未找到。', 'danger')
         redirect(url_for('show_intro', group_number=1))
-
-    if participant.group_number == 1:
-        # Control group -> coping strategy
-        return redirect(url_for('coping_strategy'))
-    else:
-        # Groups 2-7 -> persuasive techniques
-        return redirect(url_for('persuasive_techniques'))
+    return redirect(url_for('additional_information'))
 
 
 
@@ -897,6 +891,58 @@ def get_videos_after_info_cocoons_round2():
             })
 
     return jsonify({'videos': videos_data})
+
+
+
+@app.route('/additional_information', methods=['GET', 'POST'])
+@login_required_custom
+def additional_information():
+    participant_number = session.get('participant_number')
+    participant = Participant.query.get(participant_number)
+    if not participant:
+        flash('参与者未找到。', 'danger')
+        return redirect(url_for('show_intro', group_number=1))
+
+    group_num = participant.group_number
+
+    # Example Chinese messages for each treatment group (2..7).
+    # Adjust them as needed.
+    group_messages = {
+        1: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n为了避免信息茧房危害，我们建议您观看多样化的视频内容。】",
+        2: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n我们十分理解并认同您对某一类视频的喜爱，我们同样希望您能通过浏览短视频获得充分的放松和愉悦。但为了避免信息茧房对您造成危害，我们建议您观看多样化的视频内容。】",
+        3: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n作为信息行为研究者，我们一直致力于提高人们的信息茧房风险意识并帮助其远离信息茧房危害。为了协助我们降低信息茧房对您可能造成的危害，我们建议您观看多样化的视频内容。】",
+        4: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n85%的短视频平台用户在得知信息茧房风险之后都选择观看不同类型的视频来缓解信息茧房可能带来的危害，我们建议您也这样做。】",
+        5: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n请问您在多大程度上同意信息茧房可能对您造成上述危害（0表示完全不同意，10表示完全同意）：\n\n\n请问您在多大程度上同意观看多种类型的视频是保护自己远离信息茧房的有效手段：（0表示完全不同意，10表示完全同意）：\n\n\n为了避免信息茧房对您造成危害，我们建议您观看多样化的视频内容。】",
+        6: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n哈佛大学法学院Sunstein教授在其著作中深刻阐明了信息茧房的危害并强调了多样化信息在缓解信息茧房中的重要作用(来源：https://hls.harvard.edu/today/danger-internet-echo-chamber/)。为了避免信息茧房对您造成危害，我们建议您观看多样化的视频内容。】",
+        7: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n此次实验是帮助您认识信息茧房风险并主动跳出信息茧房的难得机会，我们建议您观看多样化的视频内容。】",
+    }
+
+    if request.method == 'POST':
+        time_spent_str = request.form.get('timeSpent', '0')
+        try:
+            time_spent = float(time_spent_str)
+            if time_spent > 0:
+                msg_record = MessageTime(
+                    participant_number=participant_number,
+                    time_spent=time_spent
+                )
+                db.session.add(msg_record)
+                db.session.commit()
+        except ValueError:
+            pass  # Handle invalid float
+
+        if group_num == 5:
+            q1 = request.form.get('q1')
+            q2 = request.form.get('q2')
+            # ...existing code...
+        return redirect(url_for('coping_strategy'))
+
+
+    # Default message if group_num not in 1..7
+    message = group_messages.get(group_num, "暂无提示信息")
+    return render_template('additional_information.html', group_num=group_num, message=message)
+
+
 
 
 
