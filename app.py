@@ -3,7 +3,7 @@ from flask_login import LoginManager, login_user, login_required, current_user
 from config import app, db
 from functools import wraps
 from collections import Counter
-from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime,CopingStrategy,ConsistencyAnswer
+from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime,CopingStrategy,ConsistencyAnswer,MessageTime
 
 
 
@@ -215,7 +215,7 @@ def stream_video():
             'Chrome/112.0.0.0 Safari/537.36'
         ),
         'Accept': 'application/json',
-        #'Referer': 'https://www.douyin.com/',  # Include Referer if required by the API
+        #'Referer': 'https://www.douyin.com/',  
     }
 
     app.logger.info(f"Fetching video data from: {final_url}")
@@ -253,7 +253,7 @@ def stream_video():
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                 'Chrome/112.0.0.0 Safari/537.36'
             ),
-            'Referer': 'https://www.douyin.com/',  # Include Referer if required by the CDN
+            'Referer': 'https://www.douyin.com/',  
         }, stream=True)
         video_response.raise_for_status()
     except requests.exceptions.HTTPError as http_err:
@@ -328,7 +328,6 @@ def user_interaction():
         )
         db.session.add(new_interaction)
 
-    # Handle 'remove_like' and 'remove_dislike' actions
     elif action in ['remove_like', 'remove_dislike']:
         target_action = action.split('_')[1]  # 'like' or 'dislike'
         interaction = VideoInteraction.query.filter_by(
@@ -339,7 +338,7 @@ def user_interaction():
         if interaction:
             db.session.delete(interaction)
 
-    # Handle 'star' and 'star_remove' actions
+    #'star' and 'star_remove' actions
     elif action in ['star', 'star_remove']:
         existing_star = VideoInteraction.query.filter_by(
             participant_number=participant_number,
@@ -390,7 +389,6 @@ def user_interaction():
 @login_required_custom
 def record_watch_time():
     try:
-        # Attempt to parse JSON data manually
         data = json.loads(request.data.decode('utf-8'))
     except (TypeError, json.JSONDecodeError) as e:
         app.logger.error(f"JSON decode error: {e}")
@@ -520,7 +518,6 @@ def coping_strategy():
             return redirect(url_for('index'))
 
         # Record user’s chosen strategy
-        from models import CopingStrategy  # Import only if not present at top
         new_strategy = CopingStrategy(
             participant_number=participant_number,
             strategy=chosen_strategy
@@ -684,8 +681,6 @@ def get_videos_round2():
 @app.route('/end_video_viewing_2')
 @login_required_custom
 def end_video_viewing_2():
-    # Implement the logic after second video viewing
-    # For example, redirect to a thank you page or next part of the study
     flash('感谢您的参与！', 'success')
     return redirect(url_for('end_study'))
 
@@ -741,7 +736,7 @@ def continue_same_categories():
 
 
 
-'''@app.route('/add_info_video')
+@app.route('/add_info_video')
 def add_info_video():
     # Check if 'info' category already exists
     info_cat = VideoCategory.query.filter_by(name='info').first()
@@ -764,7 +759,7 @@ def add_info_video():
         db.session.add(info_video)
         db.session.commit()
 
-    return 'Info video added successfully.'''
+    return 'Info video added successfully.
 
 
 
@@ -934,16 +929,13 @@ def additional_information():
         if group_num == 5:
             q1 = request.form.get('q1')
             q2 = request.form.get('q2')
-            # ...existing code...
+            
         return redirect(url_for('coping_strategy'))
 
 
     # Default message if group_num not in 1..7
     message = group_messages.get(group_num, "暂无提示信息")
     return render_template('additional_information.html', group_num=group_num, message=message)
-
-
-
 
 
 
