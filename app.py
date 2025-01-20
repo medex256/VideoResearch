@@ -929,6 +929,18 @@ def additional_information():
         if group_num == 5:
             q1 = request.form.get('q1')
             q2 = request.form.get('q2')
+            if q1 is not None and q2 is not None:
+                db.session.add(ConsistencyAnswer(
+                    participant_number=participant_number,
+                    question_number=1,
+                    answer=int(q1)
+                ))
+                db.session.add(ConsistencyAnswer(
+                    participant_number=participant_number,
+                    question_number=2,
+                    answer=int(q2)
+                ))
+                db.session.commit()
             
         return redirect(url_for('coping_strategy'))
 

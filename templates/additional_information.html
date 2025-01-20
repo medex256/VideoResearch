@@ -15,17 +15,12 @@
           <label>请问您在多大程度上同意观看多类型视频是保护自己远离信息茧房的有效手段（0表示完全不同意，10表示完全同意）:</label>
           <input type="range" min="0" max="10" name="q2" required>
         </div>
-        <button type="submit" class="btn btn-primary">继续</button>
-      </form>
-    {% else %}
-      <form id="infoForm" method="POST">
-        <!-- ...existing code... -->
-        <!-- Add hidden input to store time spent -->
-        <input type="hidden" name="timeSpent" id="timeSpentInput" value="0">
-        <button type="submit" class="btn btn-primary">继续</button>
       </form>
     {% endif %}
-
+    <form id="infoForm" method="POST">
+      <input type="hidden" name="timeSpent" id="timeSpentInput" value="0">
+      <button type="submit" class="btn btn-primary">继续</button>
+    </form>
     <script>
         let startTime = Date.now();
         const form = document.getElementById('infoForm');
