@@ -759,7 +759,7 @@ def add_info_video():
         db.session.add(info_video)
         db.session.commit()
 
-    return 'Info video added successfully.
+    return 'Info video added successfully.'
 
 
 
