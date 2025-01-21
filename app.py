@@ -41,9 +41,9 @@ def generate_unique_participant_number():
 
 
 
-'''@app.route('/')
-def index(group_number = 1):
-    return render_template('index.html')'''
+@app.route('/')
+def home():
+    return "Hello, PythonAnywhere!"
 
 
 
@@ -973,10 +973,10 @@ def test_video():
     embed_d_url = f"https://www.douyin.com/video/7290445158779276601"
     return render_template('test_video.html', original_link=embed_d_url)
 
-if __name__ =="__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+#if __name__ =="__main__":
+ #   with app.app_context():
+  #      db.create_all()
+  #  app.run(debug=True)
 
 
 
