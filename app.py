@@ -7,7 +7,6 @@ from models import Participant,VideoCategory,Video,Preference,VideoInteraction,W
 
 
 from load_videos import load_videos_from_excel  # ensure load_videos.py defines a load_videos() function
-from translate_categories import translate  # ensure translate_categories.py defines a translate_categories() function
 
 
 
@@ -978,6 +977,7 @@ def test_video():
 
 if __name__ =="__main__":
     with app.app_context():
+        db.drop_all() 
         db.create_all()
     app.run(debug=True)
 

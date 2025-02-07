@@ -22,7 +22,7 @@ category_translations = {
     'kids': '儿童'
 }
 
-def translate():
+with app.app_context():
     # Make sure this function is executed within an app context.
     categories = VideoCategory.query.all()
     for category in categories:
