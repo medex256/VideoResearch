@@ -22,14 +22,14 @@ category_translations = {
     'kids': '儿童'
 }
 
-with app.app_context():
+def translate():
+    # Make sure this function is executed within an app context.
     categories = VideoCategory.query.all()
     for category in categories:
         chinese_name = category_translations.get(category.name)
         if chinese_name:
             category.name_cn = chinese_name
         else:
-            category.name_cn = '未知类别'  # 'Unknown Category'
-    
+            category.name_cn = '未知类别'  # Unknown Category
     db.session.commit()
     print("Category names have been successfully translated.")

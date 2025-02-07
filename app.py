@@ -6,6 +6,10 @@ from collections import Counter
 from models import Participant,VideoCategory,Video,Preference,VideoInteraction,WatchingTime,CopingStrategy,ConsistencyAnswer,MessageTime
 
 
+from load_videos import load_videos_from_excel  # ensure load_videos.py defines a load_videos() function
+from translate_categories import translate  # ensure translate_categories.py defines a translate_categories() function
+
+
 
 import random
 import re
@@ -975,6 +979,8 @@ def test_video():
 if __name__ =="__main__":
     with app.app_context():
         db.create_all()
+        load_videos_from_excel()
+        translate()
     app.run(debug=True)
 
 
