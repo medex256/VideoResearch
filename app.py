@@ -924,7 +924,7 @@ def additional_information():
                 db.session.add(msg_record)
                 db.session.commit()
         except ValueError:
-            pass  # Handle invalid float
+            pass
 
         if group_num == 5:
             q1 = request.form.get('q1')
@@ -941,13 +941,12 @@ def additional_information():
                     answer=int(q2)
                 ))
                 db.session.commit()
-            
+
         return redirect(url_for('coping_strategy'))
 
-
-    # Default message if group_num not in 1..7
-    message = group_messages.get(group_num, "暂无提示信息")
-    return render_template('additional_information.html', group_num=group_num, message=message)
+    return render_template('additional_information.html',
+                           message=group_messages.get(group_num, ''),
+                           group_num=group_num)
 
 
 
@@ -973,10 +972,10 @@ def test_video():
     embed_d_url = f"https://www.douyin.com/video/7290445158779276601"
     return render_template('test_video.html', original_link=embed_d_url)
 
-#if __name__ =="__main__":
- #   with app.app_context():
-  #      db.create_all()
-  #  app.run(debug=True)
+if __name__ =="__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
 
 
 
