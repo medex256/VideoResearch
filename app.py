@@ -979,8 +979,6 @@ def test_video():
 if __name__ =="__main__":
     with app.app_context():
         db.create_all()
-        load_videos_from_excel()
-        translate()
     app.run(debug=True)
 
 

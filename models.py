@@ -59,7 +59,7 @@ class VideoInteraction(db.Model):
     participant_number = db.Column(db.String(50), db.ForeignKey('participant.participant_number'), nullable=False)
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)
     action = db.Column(db.String(50), nullable=False)  # 'like', 'dislike', 'collect', 'comment'
-    content = db.Column(db.String, nullable=True)  # For comments
+    content = db.Column(db.String(1024), nullable=True)  # For comments
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class MessageTime(db.Model):
