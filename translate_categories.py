@@ -1,6 +1,6 @@
 # translate_categories.py
 
-from app import app  # Ensure this imports your Flask app correctly
+from app import app  
 from models import VideoCategory, db
 
 # Define your English to Chinese mapping
