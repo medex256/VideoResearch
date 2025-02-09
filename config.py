@@ -15,5 +15,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://u3dmiywrwj3ignqx:nbb2d1
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+
 db = SQLAlchemy(app)
 migrate = Migrate(app,db)
