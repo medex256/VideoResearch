@@ -976,7 +976,7 @@ def test_video():
     return render_template('test_video.html', original_link=embed_d_url)
 
 if __name__ =="__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=80, debug=True)
 
 
 
