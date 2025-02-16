@@ -1,14 +1,14 @@
-Flask == 2.0.3
-pandas == 1.1.5
-numpy == 2.1.3
-pytz == 2024.2
-Flask-Login == 0.6.3
-Flask-Migrate == 4.0.7
-alembic ==1.14.0
-Flask-SQLAlchemy == 3.1.1
-openpyxl == 3.1.5
-SQLAlchemy == 2.0.36
-tzdata == 2024.2
-requests == 2.32.3
-sqlitecloud == 0.0.83
-pymysql == 1.1.1
+Flask 
+pandas 
+numpy 
+pytz 
+Flask-Login 
+Flask-Migrate
+alembic 
+Flask-SQLAlchemy 
+openpyxl 
+SQLAlchemy 
+tzdata 
+requests 
+sqlitecloud 
+pymysql 
