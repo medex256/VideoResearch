@@ -1,105 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <title>Douyin MP4 Test</title>
+    <title>Local MP4 Test</title>
     <style>
       body { font-family: sans-serif; margin: 2rem; }
       #videoBox { margin-top: 1rem; }
-      #status { margin-top: 1rem; font-weight: bold; }
     </style>
-</head>
-<body>
-    <h2>Douyin MP4 Test</h2>
-    <p>Fetching raw MP4 from API for: <span id="douyinLink"></span></p>
-    <div id="videoBox"></div>
-    <div id="status">Status: Not playing</div>
-    
-    <script>
-      const originalLink = "{{ original_link }}";
-      document.getElementById('douyinLink').textContent = originalLink;
-
-      if(!originalLink) {
-        document.getElementById('status').textContent = "No URL provided. Add ?url=... in the address bar.";
-      } else {
-        const streamVideoUrl = `/stream_video?url=${encodeURIComponent(originalLink)}`;
-
-        // Set the video source to the stream_video route
-        const videoBox = document.getElementById('videoBox');
-        videoBox.innerHTML = `
-          <video id="testVideo" width="640" height="360" controls>
-            <source src="${streamVideoUrl}" type="video/mp4">
-            您的浏览器不支持 HTML5 video 标签.
-          </video>
-        `;
-        const v = document.getElementById('testVideo');
-        const statusEl = document.getElementById('status');
-
-        v.addEventListener('play', () => {
-          statusEl.textContent = "Status: Playing";
-          trackWatchTimeStart();
-        });
-        v.addEventListener('pause', () => {
-          statusEl.textContent = "Status: Paused";
-          trackWatchTimePause();
-        });
-        v.addEventListener('ended', () => {
-          statusEl.textContent = "Status: Ended";
-          trackWatchTimeEnd();
-        });
-
-        // Watch Time Tracking
-        let watchStartTime = null;
-        let accumulatedWatchTime = 0;
-
-        function trackWatchTimeStart() {
-          watchStartTime = Date.now();
-        }
-
-        function trackWatchTimePause() {
-          if (watchStartTime) {
-            const watchEndTime = Date.now();
-            const watchDuration = Math.floor((watchEndTime - watchStartTime) / 1000); // seconds
-            accumulatedWatchTime += watchDuration;
-            watchStartTime = null;
-
-            // Send watchDuration to the server
-            recordWatchTime(watchDuration);
-          }
-        }
-
-        function trackWatchTimeEnd() {
-          if (watchStartTime) {
-            const watchEndTime = Date.now();
-            const watchDuration = Math.floor((watchEndTime - watchStartTime) / 1000); // seconds
-            accumulatedWatchTime += watchDuration;
-            watchStartTime = null;
-
-            // Send watchDuration to the server
-            recordWatchTime(watchDuration);
-          }
-          // Optionally, send total watch time
-          // console.log(`Total Watch Time: ${accumulatedWatchTime} seconds`);
-        }
-
-        function recordWatchTime(duration) {
-          fetch('/record_watch_time', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              video_id: '{{ video_id }}',  // Pass video ID as needed
-              duration: duration
-            })
-          })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Watch time recorded:', data);
-          })
-          .catch(error => {
-            console.error('Error recording watch time:', error);
-          });
-        }
-      }
-    </script>
-</body>
+  </head>
+  <body>
+    <h2>Local MP4 Playback Test</h2>
+    <div id="videoBox">
+      <video width="640" height="360" controls>
+        <source src="{{ url_for('static', filename='videos/snapdouyin.app-hd-1740234990652.mp4') }}" type="video/mp4">
+        您的浏览器不支持 HTML5 video 标签.
+      </video>
+    </div>
+  </body>
 </html>

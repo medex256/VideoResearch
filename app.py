@@ -968,12 +968,8 @@ def test_embed():
 
 
 @app.route('/test_video')
-@login_required_custom
 def test_video():
-    test_tiktok_id = "7376832111149468934"
-    embed_url = f"https://www.tiktok.com/player/v1/{test_tiktok_id}/"
-    embed_d_url = f"https://www.douyin.com/video/7290445158779276601"
-    return render_template('test_video.html', original_link=embed_d_url)
+    return render_template('test_video.html')
 
 if __name__ =="__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
