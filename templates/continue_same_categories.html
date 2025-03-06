@@ -179,9 +179,9 @@
 
     {% for video in videos %}
     <div class="video-container" id="videoContainer{{ loop.index }}">
-        <!-- Single Toggle Play/Pause Button -->
         <video id="videoFrame{{ loop.index }}" width="640" height="360" controls>
-            <source src="{{ url_for('stream_video') }}?url={{ video.link | urlencode }}" type="video/mp4">
+            <!-- We'll fill this source in with JavaScript -->
+            <source id="source{{ loop.index }}" src="" type="video/mp4">
             您的浏览器不支持 HTML5 video 标签.
         </video>
         <div class="controls">
@@ -220,6 +220,25 @@
     <script>
         const selectedCategories = {{ selected_categories | tojson }};
         let videos = {{ videos|tojson }};
+
+        // After you define "videos," fill in the local MP4 path per item
+        videos.forEach((video, i) => {
+
+            // Grab the Douyin link (e.g.: "https://www.douyin.com/video/7369801993575091491")
+            let link = video.link;
+            // Extract the numeric ID (e.g. "7369801993575091491")
+            let parts = link.split("/");
+            let lastPart = parts[parts.length - 1].replace(/\D/g, "");
+            
+            // Build the local path: "/static/videos/7369801993575091491.mp4"
+            let localPath = `/static/videos/${lastPart}.mp4`;
+            
+            // Assign it to the <source> element
+            let sourceElem = document.getElementById(`source${i+1}`);
+            sourceElem.src = localPath; 
+        });
+
+
         let currentIndex = 0;
         let watchStartTime = null;
         let watchTime = 0;

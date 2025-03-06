@@ -338,9 +338,14 @@
                 console.error('Error fetching videos:', error);
             });
 
-        async function getVideoLink(originalLink) {
-            const encodedLink = encodeURIComponent(originalLink);
-            return `/stream_video?url=${encodedLink}`;   
+        function getLocalVideoPath(originalLink) {
+            // 1) Split by "/" and take the last segment
+            let parts = originalLink.split("/");
+            let possibleId = parts[parts.length - 1];
+            // 2) Clean out any non-digit characters just in case
+            let videoId = possibleId.replace(/\D/g, "");
+            // 3) Return the local static file path
+            return `/static/videos/${videoId}.mp4`;
         }
 
         async function showVideo(index) {
@@ -350,10 +355,10 @@
 
             const video = videos[index];
             const videoContainer = document.getElementById('videoContainer');
-            const embedUrl = await getVideoLink(video.link);
+            const localPath = getLocalVideoPath(video.link);
             videoContainer.innerHTML = `
                 <video id="videoFrame" width="640" height="360" controls>
-                    <source src="${embedUrl}" type="video/mp4">
+                    <source src="${localPath}" type="video/mp4">
                     您的浏览器不支持 HTML5 video 标签.
                 </video>
                 <div class="controls">
