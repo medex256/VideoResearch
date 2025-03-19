@@ -73,6 +73,19 @@
                 });
             });
 
+                // Prevent submission if ratings are not all unique
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // Gather the non-zero (selected) ratings
+                const chosenRatings = Array.from(sliders)
+                    .filter(s => parseInt(s.value) > 0)
+                    .map(s => parseInt(s.value));
+
+                if (chosenRatings.length === 3 && new Set(chosenRatings).size < 3) {
+                    e.preventDefault();
+                    alert('请给三个视频不同的评分，不能有重复。');
+                }
+            });
+
             resetBtn.addEventListener('click', function() {
                 sliders.forEach((slider) => {
                     slider.value = 0;

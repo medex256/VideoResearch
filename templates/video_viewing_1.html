@@ -14,12 +14,36 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
         
+        /* Enhanced progress indicator */
         #progress {
-            font-size: 1.2rem;
-            margin: 10px 0;
+            font-size: 1.1rem;
+            padding: 12px;
             text-align: center;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 10px;
+            border-radius: 0 0 8px 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .progress-number {
+            background: linear-gradient(135deg, #4c6ef5, #15aabf);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin: 0 5px;
+            font-weight: bold;
+        }
+        
+        /* Video section with side navigation */
+        .video-section {
+            position: relative;
+            width: 100%;
+            margin-bottom: 15px;
         }
         
         .video-container {
@@ -28,23 +52,66 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            margin: 1rem 0;
-            width: 100vw; /* Full viewport width */
-            height: 80vh; /* Occupies 80% of viewport height */
-            background-color: #000; /* Optional: Add a background to highlight the video */
+            margin: 0 auto;
+            width: 100%;
+            height: 570px;
+            background-color: #000;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .video-container video {
-            width: 360px;
-            height: 640px;
-            max-width: 50%;
-            max-height: 50%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 570px;
+            object-fit: contain;
+            border-radius: 4px;
         }
-
-        /* Remove existing iframe styles if present */
-        .video-container iframe {
-            display: none;
+        
+        /* Side navigation buttons */
+        .side-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            min-width: 80px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        #prevBtn {
+            left: 15px;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+        }
+        
+        #nextBtn {
+            right: 15px;
+            background: linear-gradient(135deg, #f5365c, #f56036);
+        }
+        
+        .side-nav-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+        
+        .side-nav-btn:disabled {
+            background: linear-gradient(135deg, #a8a8a8, #d1d1d1);
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: translateY(-50%);
+            box-shadow: none;
+        }
+        
+        .side-nav-btn .material-icons-outlined {
+            font-size: 28px;
         }
 
         /* Custom Play/Pause Button */
@@ -80,137 +147,257 @@
             font-feature-settings: 'liga';
         }
 
+        /* Enhanced play button */
         .controls button {
             background: rgba(0, 0, 0, 0.6);
             border: none;
             color: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 50%;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
 
         .controls button:hover {
             background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
         }
         
-        #navigation {
-            text-align: center;
-            margin: 10px 0;
-        }
-        
-        #prevBtn, #nextBtn {
-            padding: 10px 20px;
-            font-size: 1rem;
-            margin: 0 10px;
-            cursor: pointer;
-        }
-        
+        /* Better aligned reaction buttons */
         .reactions {
             text-align: center;
-            margin: 10px 0;
+            margin: 10px 0 5px 0;
+            padding: 5px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         
         .reactions button {
             background: none;
             border: none;
-            margin: 0 15px;
-            width: 80px;
-            height: 80px;
+            margin: 0 10px;
+            width: 50px;
+            height: 50px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
             outline: none;
-            color: #000;
+            color: #495057;
+            border-radius: 50%;
         }
+        
+        .reactions button:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.1);
+        }
+        
         .reactions button .material-icons-outlined {
-            font-size: 3rem; 
-            transition: color 0.3s;
+            font-size: 2.2rem; 
+            transition: all 0.3s;
         }
 
         /* Like button pressed -> blue */
         .reactions button.like-btn.like .material-icons-outlined {
-            color: #0d6efd;
+            color: #0d6efd !important;
+            font-weight: 900;
+            text-shadow: 0 0 1px #0d6efd;
         }
 
         /* Dislike button pressed -> red */
         .reactions button.dislike-btn.dislike .material-icons-outlined {
-            color: #dc3545; 
+            color: #dc3545 !important; 
+            font-weight: 900;
+            text-shadow: 0 0 1px #dc3545;
         }
 
         /* Star button pressed -> gold */
         .reactions button.star-btn.star .material-icons-outlined {
-            color: #ffc107; 
+            color: #ffc107 !important;
+            font-weight: 900;
+            text-shadow: 0 0 1px #ffc107;
         }
         
+        /* Wider comments section with reduced top margin */
         .comments-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            max-width: 1300px; /* Wider comment section */
+            margin: 10px auto 30px; /* Reduced top margin */
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 95%; /* Take up more screen width */
         }
         
         .comments-section h3 {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            color: #343a40;
+            font-weight: 600;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .comments-section h3 .material-icons-outlined {
+            margin-right: 8px;
+            color: #6c757d;
         }
         
         .comments-section form {
             display: flex;
             flex-direction: column;
-            margin-bottom: 20px;
         }
         
+        /* Enhanced textarea */
         .comments-section textarea {
             resize: vertical;
-            padding: 10px;
+            padding: 15px;
             font-size: 1rem;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             min-height: 100px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: inherit;
         }
         
+        .comments-section textarea:focus {
+            outline: none;
+            border-color: #4c6ef5;
+            box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.15);
+        }
+        
+        /* Colorful submit button */
         .comments-section button {
             align-self: flex-end;
-            padding: 8px 16px;
+            padding: 10px 25px;
             font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,176,155,0.2);
+            display: flex;
+            align-items: center;
+        }
+        
+        .comments-section button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,176,155,0.3);
+        }
+        
+        .comments-section button .material-icons-outlined {
+            margin-left: 8px;
+            font-size: 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .video-container {
+                height: 400px;
+            }
+            
+            .video-container video {
+                max-height: 400px;
+            }
+            
+            .reactions button {
+                margin: 0 10px;
+                width: 60px;
+                height: 60px;
+            }
+            
+            .reactions button .material-icons-outlined {
+                font-size: 2.5rem;
+            }
+            
+            .side-nav-btn {
+                min-width: 70px;
+                height: 40px;
+                font-size: 0.9rem;
+                padding: 0 15px;
+            }
+            
+            .side-nav-btn .material-icons-outlined {
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .reactions button {
+                margin: 0 8px;
+                width: 50px;
+                height: 50px;
+            }
+            
+            .reactions button .material-icons-outlined {
+                font-size: 2rem;
+            }
+            
+            .side-nav-btn {
+                min-width: 60px;
+                height: 36px;
+                font-size: 0.85rem;
+                padding: 0 12px;
+            }
+            
+            .side-nav-btn .material-icons-outlined {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="progress">为您推荐: 1 / 20</div>
+    <div id="progress">为您推荐: <span class="progress-number">1</span> / <span class="progress-total">20</span></div>
 
-    <div class="video-container" id="videoContainer">
-        <!-- Single Toggle Play/Pause Button -->
-        <div class="controls">
-            <button id="playPauseBtn" title="播放">
-                <span class="material-icons-outlined">play_arrow</span>
-            </button>
+    <!-- Video section with side nav buttons -->
+    <div class="video-section">
+        <!-- Text label navigation buttons -->
+        <button id="prevBtn" class="side-nav-btn" disabled>
+            上一个
+        </button>
+        
+        <div class="video-container" id="videoContainer">
+            <!-- Play/Pause Button -->
+            <div class="controls">
+                <button id="playPauseBtn" title="播放">
+                    <span class="material-icons-outlined">play_arrow</span>
+                </button>
+            </div>
         </div>
+        
+        <button id="nextBtn" class="side-nav-btn">
+            下一个
+        </button>
+    </div>
     </div>
     
     <div class="reactions">
         <button id="likeBtn" class="like-btn" title="喜欢">
-            <span class="material-icons-outlined">thumb_up</span>
+            <span class="material-icons-outlined">thumb_up_off_alt</span>
         </button>
         <button id="dislikeBtn" class="dislike-btn" title="不喜欢">
-            <span class="material-icons-outlined">thumb_down</span>
+            <span class="material-icons-outlined">thumb_down_off_alt</span>
         </button>
         <button id="starBtn" class="star-btn" title="收藏">
-            <span class="material-icons-outlined">star_rate</span>
+            <span class="material-icons-outlined">star_border</span>
         </button>
-    </div>
-    
-    <div id="navigation">
-        <button id="prevBtn" disabled>上一个</button>
-        <button id="nextBtn">下一个</button>
     </div>
     
     <div class="comments-section">
-        <h3>评论</h3>
+        <h3><span class="material-icons-outlined">chat</span>评论</h3>
         <form id="commentForm">
             <textarea id="commentInput" placeholder="在这里输入你的评论..." required></textarea>
-            <button type="submit">提交评论</button>
+            <button type="submit">
+                提交评论
+                <span class="material-icons-outlined">send</span>
+            </button>
         </form>
     </div>
     
@@ -258,13 +445,20 @@
 
         // Event listeners for reaction buttons
         likeBtn.addEventListener('click', () => {
+            const iconElement = likeBtn.querySelector('.material-icons-outlined');
+            
             if (likeBtn.classList.contains('like')) {
                 likeBtn.classList.remove('like');
-                sendInteraction('remove_like');
+                // Keep as outlined but reset color
+                iconElement.textContent = 'thumb_up_off_alt';
             } else {
                 likeBtn.classList.add('like');
+                // Still outlined but will change color via CSS
+                iconElement.textContent = 'thumb_up';
+                
                 if (dislikeBtn.classList.contains('dislike')) {
                     dislikeBtn.classList.remove('dislike');
+                    dislikeBtn.querySelector('.material-icons-outlined').textContent = 'thumb_down_off_alt';
                     sendInteraction('remove_dislike');
                 }
                 sendInteraction('like');
@@ -273,13 +467,19 @@
         });
 
         dislikeBtn.addEventListener('click', () => {
+            const iconElement = dislikeBtn.querySelector('.material-icons-outlined');
+            
             if (dislikeBtn.classList.contains('dislike')) {
                 dislikeBtn.classList.remove('dislike');
+                iconElement.textContent = 'thumb_down_off_alt'; // Switch back to outline version
                 sendInteraction('remove_dislike');
             } else {
                 dislikeBtn.classList.add('dislike');
+                iconElement.textContent = 'thumb_down'; // Switch to filled version
+                
                 if (likeBtn.classList.contains('like')) {
                     likeBtn.classList.remove('like');
+                    likeBtn.querySelector('.material-icons-outlined').textContent = 'thumb_up_off_alt';
                     sendInteraction('remove_like');
                 }
                 sendInteraction('dislike');
@@ -288,11 +488,15 @@
         });
 
         starBtn.addEventListener('click', () => {
+            const iconElement = starBtn.querySelector('.material-icons-outlined');
+            
             if (starBtn.classList.contains('star')) {
                 starBtn.classList.remove('star');
+                iconElement.textContent = 'star_border'; // Switch back to outline version
                 sendInteraction('star_remove');
             } else {
                 starBtn.classList.add('star');
+                iconElement.textContent = 'star'; // Switch to filled version
                 sendInteraction('star');
             }
             updateUI();
@@ -357,7 +561,7 @@
             const videoContainer = document.getElementById('videoContainer');
             const localPath = getLocalVideoPath(video.link);
             videoContainer.innerHTML = `
-                <video id="videoFrame" width="640" height="360" controls>
+                <video id="videoFrame" controls>
                     <source src="${localPath}" type="video/mp4">
                     您的浏览器不支持 HTML5 video 标签.
                 </video>
@@ -368,6 +572,20 @@
                 </div>
             `;
             videoElement = document.getElementById('videoFrame');
+
+            videoElement.addEventListener('loadedmetadata', function() {
+                // Check video orientation
+                if (this.videoWidth > this.videoHeight) {
+                    // Horizontal video - optimize width
+                    this.style.maxWidth = '85%';  
+                    this.style.maxHeight = '75%';
+                } else {
+                    // Vertical video - make it narrower
+                    this.style.maxWidth = '60%';  // Narrower for vertical videos
+                    this.style.maxHeight = '85%';
+                }
+            });
+            
             playPauseBtn = document.getElementById('playPauseBtn'); // Reassign playPauseBtn
 
             // Ensure the video starts paused
@@ -387,22 +605,25 @@
             videoElement.addEventListener('pause', handlePause);
             videoElement.addEventListener('ended', handleEnded);
 
-
-            document.getElementById('nextBtn').innerText = "下一个";
             if (index === videos.length - 1) {
-            document.getElementById('nextBtn').innerText = "继续下一步";
-            } 
+                document.getElementById('nextBtn').textContent = '继续下一步';
+            } else {
+                document.getElementById('nextBtn').textContent = '下一个';
+            }
 
             // Add event listener to the new play/pause button
             playPauseBtn.addEventListener('click', togglePlayPause);
 
             document.getElementById('prevBtn').disabled = index === 0;
-            //document.getElementById('nextBtn').disabled = index === videos.length - 1;
             updateProgress();
+            
             // Reset reaction buttons
             likeBtn.classList.remove('like');
             dislikeBtn.classList.remove('dislike');
             starBtn.classList.remove('star');
+            likeBtn.querySelector('.material-icons-outlined').textContent = 'thumb_up_off_alt';
+            dislikeBtn.querySelector('.material-icons-outlined').textContent = 'thumb_down_off_alt';
+            starBtn.querySelector('.material-icons-outlined').textContent = 'star_border';
             updateUI();
         }
 
@@ -445,7 +666,8 @@
 
         // Function to update progress display
         function updateProgress() {
-            document.getElementById('progress').textContent = `${currentIndex + 1} / ${videos.length}`;
+            document.querySelector('.progress-number').textContent = currentIndex + 1;
+            document.querySelector('.progress-total').textContent = videos.length;
         }
 
         // Event listeners for navigation buttons

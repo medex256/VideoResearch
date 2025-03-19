@@ -109,6 +109,11 @@ def submit_categories():
         flash('评分必须在1到10之间。', 'danger')
         return redirect(url_for('select_categories'))
     
+
+    if len(set(ratings)) < 3:
+        flash('请给三个视频不同的评分，不能有重复。', 'danger')
+        return redirect(url_for('select_categories'))
+    
     participant_number = session.get('participant_number')
     participant = Participant.query.get(participant_number)
     
@@ -435,7 +440,7 @@ def record_watch_time():
 
 
 
-@app.route('/api/videos')
+"""@app.route('/api/videos')
 @login_required_custom
 def get_videos():
     categories = request.args.get('categories')
@@ -494,6 +499,34 @@ def get_videos():
                 'id': video.id,          # Include the database video ID
                 'title': video.title,
                 'link': final_url,
+            })
+
+    # Shuffle the videos
+    random.shuffle(videos_data)
+
+    return jsonify({'videos': videos_data})"""
+
+
+@app.route('/api/videos')
+@login_required_custom
+def get_videos():
+    # Previously limit = 20
+    # We now directly select 5 videos per category (3 categories × 5 = 15):
+    categories = request.args.get('categories')
+    category_names = categories.split(',')
+
+    videos_data = []
+    for category_name in category_names:
+        cat_obj = VideoCategory.query.filter_by(name=category_name).first()
+        if not cat_obj:
+            continue
+        videos_in_category = Video.query.filter_by(category_id=cat_obj.id).all()
+        selected_videos = random.sample(videos_in_category, min(5, len(videos_in_category)))
+        for video in selected_videos:
+            videos_data.append({
+                'id': video.id,
+                'title': video.title,
+                'link': video.url,
             })
 
     # Shuffle the videos
