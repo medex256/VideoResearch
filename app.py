@@ -413,11 +413,12 @@ def record_watch_time():
     participant_number = session.get('participant_number')
     if not participant_number:
         return jsonify({'status': 'fail', 'message': 'Participant not found'}), 400
-
-    # Verify that the video exists
-    video = Video.query.get(video_id)
-    if not video:
-        return jsonify({'status': 'fail', 'message': 'Video not found'}), 404
+    
+    if video_id!=9999:
+        # Verify that the video exists
+        video = Video.query.get(video_id)
+        if not video:
+            return jsonify({'status': 'fail', 'message': 'Video not found'}), 404
 
     # Create a new WatchingTime record
     interaction = WatchingTime(
@@ -977,9 +978,29 @@ def additional_information():
                     answer=int(q2)
                 ))
                 db.session.commit()
+        
+        chosen_strategy = request.form.get('strategy')
+        if chosen_strategy:
+            # Record user's chosen strategy
+            new_strategy = CopingStrategy(
+                participant_number=participant_number,
+                strategy=chosen_strategy
+            )
+            db.session.add(new_strategy)
+            db.session.commit()
 
+            # Redirect based on strategy
+            if chosen_strategy == 'watch_other':
+                # Exclude previously chosen categories and let user pick again
+                return redirect(url_for('select_categories_round2'))
+            elif chosen_strategy == 'learn_more':
+                return redirect(url_for('info_cocoons'))
+            else:
+                # 'avoidance' -> watch same categories
+                return redirect(url_for('continue_same_categories'))    
+
+        # If no strategy selected (fallback), redirect to coping_strategy page
         return redirect(url_for('coping_strategy'))
-
     return render_template('additional_information.html',
                            message=group_messages.get(group_num, ''),
                            group_num=group_num)

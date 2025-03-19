@@ -6,7 +6,7 @@
     <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
     <style>
-        /* CSS Styles */
+        /* CSS Styles unchanged - keeping your existing styles */
         body {
             margin: 0;
             padding: 0;
@@ -79,7 +79,7 @@
             font-size: 1.1rem;
             padding: 0 20px;
         }
-                /* Keep the purple gradient for the next button */
+        /* Keep the purple gradient for the next button */
         #nextBtn {
             right: 15px;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -251,8 +251,6 @@
             display: none;
         }
         
-        
-        
         #nextBtn .material-icons-outlined {
             margin-left: 8px;
             font-size: 20px;
@@ -326,7 +324,7 @@
     <!-- Video section -->
     <div class="video-section">
         <div class="video-container" id="infoVideoContainer">
-            <video id="infoVideo" controls>
+            <video id="infoVideo" controls autoplay>
                 <source src="{{ url_for('static', filename='videos/info_video.mp4') }}" type="video/mp4">
                 您的浏览器不支持 HTML5 video 标签.
             </video>
@@ -389,7 +387,6 @@
         const commentForm = document.getElementById('commentForm');
         const commentInput = document.getElementById('commentInput');
 
-
         // Toggling Play/Pause
         function togglePlayPause() {
             if (isPlaying) {
@@ -411,7 +408,7 @@
         
         function handlePause() {
             if (isPlaying) {
-                recordWatchTime();
+                sendWatchTime(); // UPDATED: renamed from recordWatchTime to sendWatchTime
                 isPlaying = false;
                 playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
                 playPauseBtn.setAttribute('title', '播放');
@@ -419,7 +416,7 @@
         }
         
         function handleEnded() {
-            recordWatchTime();
+            sendWatchTime(); // UPDATED: renamed from recordWatchTime to sendWatchTime
             isPlaying = false;
             playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
             playPauseBtn.setAttribute('title', '播放');
@@ -429,30 +426,40 @@
         infoVideo.addEventListener('pause', handlePause);
         infoVideo.addEventListener('ended', handleEnded);
 
-        // Record watch time with round_number=11
-        function recordWatchTime() {
+        // UPDATED: Improved watch time recording function based on video_viewing_after_info_cocoons_2
+        function sendWatchTime() {
             if (watchStartTime !== null) {
-                const duration = (Date.now() - watchStartTime) / 1000;
+                const currentTime = Date.now();
+                const duration = Math.round(((currentTime - watchStartTime) / 1000) * 100) / 100; // seconds
                 watchTime += duration;
                 watchStartTime = null;
-                fetch('/api/record_watch_time', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        video_id: infoVideoId,
-                        watch_duration: Math.round(watchTime * 100) / 100,
-                        round_number: 11
+
+                if (watchTime > 0) {
+                    fetch('/api/record_watch_time', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            video_id: infoVideoId,
+                            watch_duration: watchTime,
+                            round_number: 11 // Keep special round number for info cocoons
+                        })
                     })
-                })
-                .catch(error => console.error('Error recording watch time:', error));
-                watchTime = 0;
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Watch time recorded:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error recording watch time:', error);
+                    });
+                    watchTime = 0;
+                }
             }
         }
 
         // Reset watch time tracking
         function resetWatchTime() {
             if (watchStartTime !== null) {
-                recordWatchTime();
+                sendWatchTime(); // UPDATED: renamed from recordWatchTime
             }
             watchStartTime = null;
             watchTime = 0;
