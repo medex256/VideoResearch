@@ -229,16 +229,6 @@
             videoElement = document.getElementById('videoFrame');
 
             videoElement.addEventListener('loadedmetadata', function() {
-                // Check video orientation
-                if (this.videoWidth > this.videoHeight) {
-                    // Horizontal video - optimize width
-                    this.style.maxWidth = '85%';  
-                    this.style.maxHeight = '75%';
-                } else {
-                    // Vertical video - make it narrower
-                    this.style.maxWidth = '60%';  // Narrower for vertical videos
-                    this.style.maxHeight = '85%';
-                }
 
                 // Start playing video after metadata is loaded
                 this.play().catch(e => {
@@ -260,9 +250,6 @@
             resetWatchTime();
 
             // Remove existing event listeners by cloning the video element
-            const clonedVideo = videoElement.cloneNode(true);
-            videoElement.parentNode.replaceChild(clonedVideo, videoElement);
-            videoElement = clonedVideo;
 
             // Add event listeners to the new video element
             videoElement.addEventListener('play', handlePlay);

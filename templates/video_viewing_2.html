@@ -229,15 +229,6 @@
 
             videoElement.addEventListener('loadedmetadata', function() {
                 // Check video orientation
-                if (this.videoWidth > this.videoHeight) {
-                    // Horizontal video - optimize width
-                    this.style.maxWidth = '85%';  
-                    this.style.maxHeight = '75%';
-                } else {
-                    // Vertical video - make it narrower
-                    this.style.maxWidth = '60%';  // Narrower for vertical videos
-                    this.style.maxHeight = '85%';
-                }
 
                 this.play().catch(e => {
                     console.error("Autoplay prevented:", e);
@@ -255,11 +246,6 @@
             playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
             playPauseBtn.setAttribute('title', '播放');
             resetWatchTime();
-
-            // Remove existing event listeners by cloning the video element
-            const clonedVideo = videoElement.cloneNode(true);
-            videoElement.parentNode.replaceChild(clonedVideo, videoElement);
-            videoElement = clonedVideo;
 
             // Add event listeners to the new video element
             videoElement.addEventListener('play', handlePlay);
