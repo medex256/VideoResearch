@@ -414,30 +414,74 @@ def record_watch_time():
     if not participant_number:
         return jsonify({'status': 'fail', 'message': 'Participant not found'}), 400
     
-    if video_id!=9999:
-        # Verify that the video exists
+    # Calculate percentage watched based on video type
+    percentage_watched = None
+    if video_id == 9999:  
+        # For info video, use hardcoded duration 
+        INFO_VIDEO_DURATION = 228  
+        if watch_duration > 0:
+            percentage_watched = min((watch_duration / INFO_VIDEO_DURATION) * 100, 100)
+    else:
+        # For regular videos
         video = Video.query.get(video_id)
         if not video:
             return jsonify({'status': 'fail', 'message': 'Video not found'}), 404
-
-    # Create a new WatchingTime record
-    interaction = WatchingTime(
-        participant_number=participant_number,
-        video_id=video_id,
-        round_number=round_number,
-        time_spent=watch_duration
-    )
-
+            
+        if video.duration and video.duration > 0:
+            percentage_watched = min((watch_duration / video.duration) * 100, 100)
+    
     try:
-        db.session.add(interaction)
+        # Check if an entry already exists for this participant, video, and round
+        existing_record = WatchingTime.query.filter_by(
+            participant_number=participant_number,
+            video_id=video_id,
+            round_number=round_number
+        ).first()
+        
+        if existing_record:
+            # Update existing record
+            existing_record.time_spent += watch_duration
+            
+            # Update percentage watched for all videos
+            if video_id == 9999:
+                # Recalculate for info video
+                if existing_record.time_spent > 0:
+                    existing_record.percentage_watched = min((existing_record.time_spent / INFO_VIDEO_DURATION) * 100, 100)
+            else:
+                # Recalculate for regular video
+                if video.duration and video.duration > 0:
+                    existing_record.percentage_watched = min((existing_record.time_spent / video.duration) * 100, 100)
+                
+            # Format percentage string separately to avoid format specifier issues
+            percentage_str = f"{existing_record.percentage_watched:.1f}" if existing_record.percentage_watched is not None else "N/A"
+            
+            app.logger.info(f"Updated Watch Time: Participant {participant_number}, Video {video_id}, "
+                           f"Round {round_number}, Total Time Spent {existing_record.time_spent} seconds, "
+                           f"Percentage {percentage_str}%")
+        else:
+            # Create a new record
+            new_record = WatchingTime(
+                participant_number=participant_number,
+                video_id=video_id,
+                round_number=round_number,
+                time_spent=watch_duration,
+                percentage_watched=percentage_watched
+            )
+            db.session.add(new_record)
+            
+            # Format percentage string separately
+            percentage_str = f"{percentage_watched:.1f}" if percentage_watched is not None else "N/A"
+            
+            app.logger.info(f"New Watch Time Record: Participant {participant_number}, Video {video_id}, "
+                           f"Round {round_number}, Time Spent {watch_duration} seconds, "
+                           f"Percentage {percentage_str}%")
+        
         db.session.commit()
-        app.logger.info(f"Watch Time Recorded: Participant {participant_number}, Video {video_id}, Round {round_number}, Time Spent {watch_duration} seconds")
         return jsonify({'status': 'success'}), 200
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Database error: {e}")
         return jsonify({'status': 'fail', 'message': 'Database error'}), 500
-
 
 
 
@@ -940,13 +984,13 @@ def additional_information():
     # Example Chinese messages for each treatment group (2..7).
     # Adjust them as needed.
     group_messages = {
-        1: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n为了避免信息茧房危害，我们建议您观看多样化的视频内容。】",
-        2: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n我们十分理解并认同您对某一类视频的喜爱，我们同样希望您能通过浏览短视频获得充分的放松和愉悦。但为了避免信息茧房对您造成危害，我们建议您观看多样化的视频内容。】",
-        3: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n作为信息行为研究者，我们一直致力于提高人们的信息茧房风险意识并帮助其远离信息茧房危害。为了协助我们降低信息茧房对您可能造成的危害，我们建议您观看多样化的视频内容。】",
-        4: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n85%的短视频平台用户在得知信息茧房风险之后都选择观看不同类型的视频来缓解信息茧房可能带来的危害，我们建议您也这样做。】",
-        5: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n请问您在多大程度上同意信息茧房可能对您造成上述危害（0表示完全不同意，10表示完全同意）：\n\n\n请问您在多大程度上同意观看多种类型的视频是保护自己远离信息茧房的有效手段：（0表示完全不同意，10表示完全同意）：\n\n\n为了避免信息茧房对您造成危害，我们建议您观看多样化的视频内容。】",
-        6: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n哈佛大学法学院Sunstein教授在其著作中深刻阐明了信息茧房的危害并强调了多样化信息在缓解信息茧房中的重要作用(来源：https://hls.harvard.edu/today/danger-internet-echo-chamber/)。为了避免信息茧房对您造成危害，我们建议您观看多样化的视频内容。】",
-        7: "【！！系统检测到您已经浏览了大量同质化的视频内容。\n长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n此次实验是帮助您认识信息茧房风险并主动跳出信息茧房的难得机会，我们建议您观看多样化的视频内容。】",
+        1: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 为了避免信息茧房危害，我们建议您观看多样化的视频内容。】",
+        2: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 我们十分理解并认同您对某一类视频的喜爱，我们同样希望您能通过浏览短视频获得充分的放松和愉悦。我们相信，重复单调的信息并不能满足您对于大千世界的好奇和探索欲，您完全有能力对多样化信息进行充分获取和吸收。为了进一步提升您的内容体验，我们建议您观看多样化的视频内容。】",
+        3: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 信息行为研究者花费了多年时间和数以万计的成本来提高人们的信息茧房风险意识并帮助其远离信息茧房危害。您主动的多样化内容选择是帮助我们实现破茧的关键一环。为了协助我们抵御信息茧房风险，我们建议您观看多样化的视频内容。】",
+        4: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 开放多元的信息环境是平台管理者和广大网民的共同愿望。各大主流短视频平台近年纷纷推出内容管理功能鼓励用户自主调节多元内容推送比例，同时，超过85%的短视频平台用户在得知信息茧房风险之后都选择观看不同类型的视频。为了共同构建包容和谐、丰富多彩的网络环境，我们建议您观看多样化的视频内容。】",
+        5: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 请问您在多大程度上同意信息茧房可能对您造成危害: 0-10请问您在多大程度上同意观看多种类型的视频是保护自己远离信息茧房的有效手段: 0-10您的选择表明您对于信息茧房及其缓解策略有较为清晰的认知。基于您的选择，我们建议您观看多样化的视频内容。】",
+        6: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 哈佛大学法学院教授、著名行为经济学家Sunstein在其著作《信息乌托邦》中深刻阐明了信息茧房对于个人身心和思维的危害并强调了浏览多样化信息内容对于缓解信息茧房的有效作用。依据权威人士的建议，我们建议您接下来观看多样化的视频内容。】",
+        7: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 陷入信息茧房的人们往往是无意识的，推荐算法结合个人喜好源源不断地为用户推荐符合兴趣的内容，这使得您几乎没有机会立即分辨并主动远离信息茧房。此次实验是帮助您认识信息茧房风险并主动跳出信息茧房的难得机会，我们建议您把握此次机会，在接下来观看多样化的视频内容。】",
     }
 
     if request.method == 'POST':

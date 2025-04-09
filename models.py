@@ -75,6 +75,7 @@ class WatchingTime(db.Model):
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'), nullable=False)  # Changed from round_number
     round_number = db.Column(db.Integer, nullable=False)  # 1 or 2
     time_spent = db.Column(db.Float, nullable=False)  # Time in seconds
+    percentage_watched = db.Column(db.Float, nullable=True)  # Percentage of video watched (0-100)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class ConsistencyAnswer(db.Model):
