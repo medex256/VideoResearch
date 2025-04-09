@@ -481,7 +481,7 @@ def record_watch_time():
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Database error: {e}")
-        return jsonify({'status': 'fail', 'message': 'Database error'}), 500
+        return jsonify({'status': 'fail', 'message': f'Database error{e}'}), 500
 
 
 
