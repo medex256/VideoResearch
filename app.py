@@ -481,7 +481,7 @@ def record_watch_time():
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Database error: {e}")
-        return jsonify({'status': 'fail', 'message': f'Database error{e}'}), 500
+        return jsonify({'status': 'fail', 'message': 'Database error'}), 500
 
 
 
@@ -814,38 +814,6 @@ def continue_same_categories():
     return render_template('continue_same_categories.html', videos=chosen_videos, selected_categories=selected_categories)
 
 
-
-
-
-@app.route('/add_info_video')
-def add_info_video():
-    # Check if 'info' category already exists
-    info_cat = VideoCategory.query.filter_by(name='info').first()
-    if not info_cat:
-        info_cat = VideoCategory(
-            name='info',
-            name_cn='信息视频',
-        )
-        db.session.add(info_cat)
-        db.session.commit()
-
-    # Check if the video already exists
-    existing_video = Video.query.filter_by(url='https://www.douyin.com/video/7277534527801576704').first()
-    if not existing_video:
-        info_video = Video(
-            title='信息茧房介绍',
-            url='https://www.douyin.com/video/7277534527801576704',
-            category_id=info_cat.id
-        )
-        db.session.add(info_video)
-        db.session.commit()
-
-    return 'Info video added successfully.'
-
-
-
-
-
 @app.route('/select_categories_after_info_cocoons_round2', methods=['GET'])
 @login_required_custom
 def select_categories_after_info_cocoons_round2():
@@ -1068,6 +1036,37 @@ def test_embed():
 @app.route('/test_video')
 def test_video():
     return render_template('test_video.html')
+
+
+
+
+@app.route('/add_info_video')
+def add_info_video():
+    """Add the info video record with ID 9999 to the database"""
+    # Check if info video already exists
+    existing_info_video = Video.query.get(9999)
+    if existing_info_video:
+        return "Info video already exists with ID 9999"
+    # Create the info video record
+    info_video = Video(
+        id=9999,
+        title='信息茧房介绍视频',
+        url='https://www.douyin.com/video/7277534527801576704',
+        duration=228,  # Match the hardcoded duration in your code
+        tags='info,education',
+        likes='0',
+        forwards='0'
+    )
+    
+    try:
+        db.session.add(info_video)
+        db.session.commit()
+        return "Info video added successfully with ID 9999"
+    except Exception as e:
+        db.session.rollback()
+        return f"Error adding info video: {str(e)}"
+
+
 
 if __name__ =="__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

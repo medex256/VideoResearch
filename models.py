@@ -31,7 +31,7 @@ class VideoCategory(db.Model):
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('video_category.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('video_category.id'), nullable=True)
     title = db.Column(db.String(200), nullable=False)
     url = db.Column(db.String(500), nullable=False)
     duration = db.Column(db.Integer)
