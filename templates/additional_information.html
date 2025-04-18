@@ -45,6 +45,46 @@
             position: relative;
             z-index: 1;
         }
+
+        /* Neutral box for control group */
+        .neutral-box {
+            background: #fff;
+            border-left: 5px solid #6c757d !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+            position: relative;
+        }
+
+        .neutral-box:before {
+            display: none !important; /* Remove the warning symbol */
+        }
+
+        .neutral-box h4 {
+            color: #212529;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .neutral-box h4:after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 4px;
+            background: #6c757d;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        /* Override the red warning styling for control group */
+        .group-0 .info-box {
+            border-left: 5px solid #6c757d;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .group-0 .info-box:before {
+            display: none; /* Remove the warning symbol */
+        }
         
         .warning-title {
             color: #dc3545;
@@ -323,29 +363,38 @@
 </head>
 <body>
 
-<div class="container mt-5 mb-5">
+<div class="container mt-5 mb-5 group-{{ group_num }}">
     <h2 class="text-center mb-5 page-title">额外提示</h2>
 
     <!-- Information Message - Enhanced for persuasion -->
-    <div class="info-box">
-        <div class="info-content">
-            <div class="warning-title">
-                <i class="material-icons-outlined">warning</i>
-                系统检测到您已经浏览了大量同质化的视频内容
-            </div>
-            
-            {% if group_num == 5 %}
-                <!-- For group 5, only show the warning message, not the questions -->
-                <p class="fs-5" style="line-height: 1.7;">长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。</p>
-                <div class="conclusion-box mt-4">
-                    <p class="mb-0 fw-bold">您的选择表明您对于信息茧房及其缓解策略有较为清晰的认知。基于您的选择，我们建议您观看多样化的视频内容。</p>
-                </div>
-            {% else %}
-                <!-- For other groups, show the full message -->
-                <p class="fs-5" style="white-space: pre-line; line-height: 1.7;">{{ message|replace('【', '')|replace('】', '')|replace('！！系统检测到您已经浏览了大量同质化的视频内容。', '') }}</p>
-            {% endif %}
+    {% if group_num == 0 %}
+        <!-- Control group - neutral styling with single box -->
+        <div class="info-box neutral-box">
+            <h4 class="text-center mb-4">后续步骤说明</h4>
+            <p class="fs-5" style="white-space: pre-line; line-height: 1.8;">{{ message }}</p>
         </div>
-    </div>
+    {% else %}
+        <!-- For other groups, show the warning title and standard styling -->
+        <div class="info-box">
+            <div class="info-content">
+                <div class="warning-title">
+                    <i class="material-icons-outlined">warning</i>
+                    系统检测到您已经浏览了大量同质化的视频内容
+                </div>
+                
+                {% if group_num == 5 %}
+                    <!-- For group 5, only show the warning message, not the questions -->
+                    <p class="fs-5" style="line-height: 1.7;">长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。</p>
+                    <div class="conclusion-box mt-4">
+                        <p class="mb-0 fw-bold">您的选择表明您对于信息茧房及其缓解策略有较为清晰的认知。基于您的选择，我们建议您观看多样化的视频内容。</p>
+                    </div>
+                {% else %}
+                    <!-- For other groups, show the full message -->
+                    <p class="fs-5" style="white-space: pre-line; line-height: 1.7;">{{ message|replace('【', '')|replace('】', '')|replace('！！系统检测到您已经浏览了大量同质化的视频内容。', '') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 
     <!-- Form with Enhanced Sliders -->
     <form id="infoForm" method="POST" class="mt-4">

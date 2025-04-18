@@ -53,7 +53,7 @@ def home():
 
 @app.route('/intro/<int:group_number>')
 def show_intro(group_number):
-    if group_number < 1 or group_number > 7:
+    if group_number < 0 or group_number > 7:
         flash('无效组别编号。', 'danger')
         # Fallback to group_number=1 instead of "index"
         return redirect(url_for('show_intro', group_number=1))
@@ -62,7 +62,7 @@ def show_intro(group_number):
 
 @app.route('/initial_selection/<int:group_number>', methods=['GET', 'POST'])
 def initial_selection(group_number):
-    if group_number < 1 or group_number > 7:
+    if group_number < 0 or group_number > 7:
         flash('无效组别编号。', 'danger')
         redirect(url_for('show_intro', group_number=1))
     try:
@@ -952,6 +952,10 @@ def additional_information():
     # Example Chinese messages for each treatment group (2..7).
     # Adjust them as needed.
     group_messages = {
+        0: "您已完成第一轮视频浏览，接下来请您点击下列按钮进入后续步骤。\n\n"
+            "• 若您点击\"观看多样化视频\"，则需从未浏览的12类视频中再次选择三类您感兴趣的视频进行浏览。\n\n"
+            "• 若您点击\"了解更多信息茧房\"，则需观看一个与信息茧房相关的科普视频并再次做出您的类型偏好选择。\n\n"
+            "• 若您点击\"观看相同类型视频\"，则会继续浏览与您之前所选类型相同的视频内容。",
         1: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 为了避免信息茧房危害，我们建议您观看多样化的视频内容。】",
         2: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 我们十分理解并认同您对某一类视频的喜爱，我们同样希望您能通过浏览短视频获得充分的放松和愉悦。我们相信，重复单调的信息并不能满足您对于大千世界的好奇和探索欲，您完全有能力对多样化信息进行充分获取和吸收。为了进一步提升您的内容体验，我们建议您观看多样化的视频内容。】",
         3: "【！！系统检测到您已经浏览了大量同质化的视频内容。长期暴露于同质化的信息被证实能够强化人们的认知偏差和思维局限，甚至会导致偏激的思想和行为。\n\n 信息行为研究者花费了多年时间和数以万计的成本来提高人们的信息茧房风险意识并帮助其远离信息茧房危害。您主动的多样化内容选择是帮助我们实现破茧的关键一环。为了协助我们抵御信息茧房风险，我们建议您观看多样化的视频内容。】",
