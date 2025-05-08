@@ -96,14 +96,13 @@ function initVideoPlayer(options) {
         let parts = originalLink.split("/");
         let possibleId = parts[parts.length - 1];
         let videoId = possibleId.replace(/\D/g, "");
-        return `/static/videos/${videoId}.mp4`;
+        return `https://d47xsu9sfg2co.cloudfront.net/videos/${videoId}.mp4`;
     }
 
     // Main function to display a video
     async function showVideo(index) {
         // 1. Record any current watch time before switching
         await recordCurrentWatchTime();
-        
         // 2. Clean up existing video element
         cleanupVideoElement();
         
