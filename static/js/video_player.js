@@ -222,6 +222,13 @@ function initVideoPlayer(options) {
         videoElement.addEventListener('play', handlePlay);
         videoElement.addEventListener('pause', handlePause);
         videoElement.addEventListener('ended', handleEnded);
+        // Listen for 'seeked' (when user finishes skipping)
+        videoElement.addEventListener('seeked', function() {
+            if (isPlaying) {
+                recordCurrentWatchTime();
+                watchStartTime = Date.now();
+            }
+        });
         
         // Control button
         playPauseBtn.addEventListener('click', togglePlayPause);
