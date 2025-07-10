@@ -1,0 +1,46 @@
+name: Deploy Video Research App
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            # Navigate to project directory
+            cd /home/ubuntu/VideoProject/NewPortal || exit 1
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Stop existing containers
+            docker-compose down || true
+            
+            # Build and start new containers
+            docker-compose up -d --build
+            
+            # Check if containers are running
+            docker-compose ps
+            
+            # Show logs for debugging
+            docker-compose logs --tail=50
+          '
+
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f http://${{ secrets.EC2_HOST }}:5000 || exit 1

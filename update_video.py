@@ -2,6 +2,7 @@ import pandas as pd
 from config import app, db
 from models import Video
 import os
+import sys
 
 def update_videos_from_excel():
     """Update video records with new data from the Excel file."""
@@ -9,6 +10,10 @@ def update_videos_from_excel():
     
     # Path to the Excel file
     excel_path = os.path.join(os.path.dirname(__file__), 'Videos_replace.xlsx')
+    
+    if not os.path.exists(excel_path):
+        print(f"Excel file not found: {excel_path}")
+        return False
     
     try:
         # Read the Excel file
@@ -73,8 +78,12 @@ def update_videos_from_excel():
         print(f"Not found in database: {not_found_count}")
         print(f"Errors: {error_count}")
         
+        return error_count == 0
+        
     except Exception as e:
         print(f"An error occurred: {str(e)}")
+        return False
 
 if __name__ == "__main__":
-    update_videos_from_excel()
+    success = update_videos_from_excel()
+    sys.exit(0 if success else 1)

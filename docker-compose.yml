@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./instance:/app/instance
+      - ./Douyin_videos.xlsx:/app/Douyin_videos.xlsx
+      - ./Videos_replace.xlsx:/app/Videos_replace.xlsx
+    environment:
+      - FLASK_ENV=production
+    command: >
+      bash -c "
+        scripts/setup.sh &&
+        python app.py
+      "
+    restart: unless-stopped
