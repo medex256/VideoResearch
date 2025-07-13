@@ -14,7 +14,6 @@ jobs:
       - run: pytest
 
   deploy:
-    needs: build_and_push
     runs-on: ubuntu-latest
     steps:
       - name: SSH & Deploy
