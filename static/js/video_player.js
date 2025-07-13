@@ -28,6 +28,8 @@ function initVideoPlayer(options) {
     let isPlaying = false;
     let videoElement = null;
     let playPauseBtn = null;
+    let currentPosition = 0;  // Track current playback position for better seek handling
+    let lastRecordedPosition = 0;  // Track the last recorded position for seek detection
 
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
@@ -149,6 +151,11 @@ function initVideoPlayer(options) {
             const duration = Math.round(((currentTime - watchStartTime) / 1000) * 100) / 100;
             watchTime += duration;
             
+            // Get current playback position if video element exists
+            if (videoElement) {
+                currentPosition = Math.round(videoElement.currentTime);
+            }
+            
             // Only record if there is actual watch time
             if (watchTime > 0) {
                 try {
@@ -158,11 +165,17 @@ function initVideoPlayer(options) {
                         body: JSON.stringify({
                             video_id: currentVideoId,
                             watch_duration: watchTime,
-                            round_number: config.roundNumber
+                            round_number: config.roundNumber,
+                            current_position: currentPosition
                         })
                     });
                     const data = await response.json();
-                    console.log('Watch time recorded for video ID:', currentVideoId, 'Duration:', watchTime);
+                    console.log('Watch time recorded for video ID:', currentVideoId, 
+                                'Duration:', watchTime, 
+                                'Position:', currentPosition);
+                    
+                    // Update last recorded position
+                    lastRecordedPosition = currentPosition;
                 } catch (error) {
                     console.error('Error recording watch time:', error);
                 }
@@ -222,10 +235,28 @@ function initVideoPlayer(options) {
         videoElement.addEventListener('play', handlePlay);
         videoElement.addEventListener('pause', handlePause);
         videoElement.addEventListener('ended', handleEnded);
+        // Listen for 'seeking' (when user starts skipping)
+        videoElement.addEventListener('seeking', function() {
+            if (isPlaying && watchStartTime !== null) {
+                // Record watch time up to the seeking point
+                recordCurrentWatchTime();
+            }
+        });
+        
         // Listen for 'seeked' (when user finishes skipping)
         videoElement.addEventListener('seeked', function() {
+            // Get the new position after seeking
+            currentPosition = Math.round(videoElement.currentTime);
+            
+            // If significantly different from last position, consider it a seek
+            const seekDistance = Math.abs(currentPosition - lastRecordedPosition);
+            if (seekDistance > 2) { // More than 2 seconds difference
+                console.log(`Seek detected: ${lastRecordedPosition}s → ${currentPosition}s (${seekDistance}s)`);
+                lastRecordedPosition = currentPosition;
+            }
+            
+            // If video is playing, start a new watch time segment
             if (isPlaying) {
-                recordCurrentWatchTime();
                 watchStartTime = Date.now();
             }
         });
@@ -265,12 +296,20 @@ function initVideoPlayer(options) {
     function handlePlay() {
         isPlaying = true;
         watchStartTime = Date.now();
+        // Update current position when play starts
+        if (videoElement) {
+            currentPosition = Math.round(videoElement.currentTime);
+        }
         playPauseBtn.innerHTML = '<span class="material-icons-outlined">pause</span>';
         playPauseBtn.setAttribute('title', '暂停');
     }
 
     function handlePause() {
         if (isPlaying) {
+            // Update current position before recording
+            if (videoElement) {
+                currentPosition = Math.round(videoElement.currentTime);
+            }
             recordCurrentWatchTime();
             isPlaying = false;
             playPauseBtn.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
@@ -340,6 +379,11 @@ function initVideoPlayer(options) {
                 const duration = Math.round(((currentTime - watchStartTime) / 1000) * 100) / 100;
                 watchTime += duration;
                 
+                // Get final position if possible
+                if (videoElement) {
+                    currentPosition = Math.round(videoElement.currentTime);
+                }
+                
                 // Send watch time data
                 const response = await fetch('/api/record_watch_time', {
                     method: 'POST',
@@ -347,7 +391,8 @@ function initVideoPlayer(options) {
                     body: JSON.stringify({
                         video_id: finalVideoId,
                         watch_duration: watchTime,
-                        round_number: config.roundNumber
+                        round_number: config.roundNumber,
+                        current_position: currentPosition
                     })
                 });
                 
@@ -380,11 +425,18 @@ function initVideoPlayer(options) {
             const currentTime = Date.now();
             const duration = Math.round(((currentTime - watchStartTime) / 1000) * 100) / 100;
             
+            // Get the final position if possible
+            let finalPosition = currentPosition;
+            if (videoElement) {
+                finalPosition = Math.round(videoElement.currentTime);
+            }
+            
             // Use sendBeacon for reliable data transmission during page unload
             navigator.sendBeacon('/api/record_watch_time', JSON.stringify({
                 video_id: videoId,
                 watch_duration: duration,
-                round_number: config.roundNumber
+                round_number: config.roundNumber,
+                current_position: finalPosition
             }));
         }
     }
@@ -393,6 +445,8 @@ function initVideoPlayer(options) {
     function resetWatchTime() {
         watchStartTime = null;
         watchTime = 0;
+        currentPosition = 0;
+        lastRecordedPosition = 0;
     }
 
     // Update progress indicator

@@ -11,4 +11,7 @@ SQLAlchemy
 tzdata 
 requests 
 sqlitecloud 
-pymysql 
+pymysql
+pytest
+pytest-flask
+pytest-cov

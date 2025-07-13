@@ -2,3 +2,6 @@ venv
 instance
 migrations
 __pycache__
+.coverage
+
+*.pyc
