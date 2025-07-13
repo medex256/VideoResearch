@@ -1,19 +1,17 @@
 version: "3.8"
-
 services:
-  app:
+  web:
     build: .
     ports:
       - "5000:5000"
-    volumes:
-      - ./instance:/app/instance
-      - ./Douyin_videos.xlsx:/app/Douyin_videos.xlsx
-      - ./Videos_replace.xlsx:/app/Videos_replace.xlsx
     environment:
-      - FLASK_ENV=production
-    command: >
-      bash -c "
-        scripts/setup.sh &&
-        python app.py
-      "
-    restart: unless-stopped
+      DATABASE_URL: "${DATABASE_URL}"
+      SECRET_KEY: "${SECRET_KEY}"
+
+  migrator:
+    build: .
+    entrypoint: ["./scripts/init-db.sh"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      SECRET_KEY: "${SECRET_KEY}"
+      RUN_DB_INIT: "${RUN_DB_INIT:-false}"

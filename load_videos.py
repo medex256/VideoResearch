@@ -59,6 +59,26 @@ def load_videos_from_excel(file_path):
         db.session.commit()
         print(f"Successfully added {len(videos_to_add)} videos to the database.")
 
+def add_info_video():
+    """Ensure the “info cocoons” video is in the DB with ID=9999."""
+    with app.app_context():
+        if Video.query.get(9999):
+            print("Info video (9999) already exists, skipping.")
+        else:
+            info = Video(
+                id=9999,
+                title='信息茧房介绍视频',
+                url='https://www.douyin.com/video/7277534527801576704',
+                duration=228,
+                tags='info,education',
+                likes='0',
+                forwards='0'
+            )
+            db.session.add(info)
+            db.session.commit()
+            print("Info video (9999) added.")
+
 if __name__ == '__main__':
     file_path = 'Douyin_videos.xlsx'
     load_videos_from_excel(file_path)
+    add_info_video()

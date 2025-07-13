@@ -1,0 +1,21 @@
+name: Fresh-Start DB Reseed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  freshstart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH & Full Seed
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/VideoResearch
+            git pull
+            export RUN_DB_INIT=true
+            docker-compose pull
+            docker-compose up -d migrator web

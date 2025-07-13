@@ -9,9 +9,16 @@ import tempfile
 from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
+# add db= [sq]
 from config import app as flask_app, db
 from models import Participant, Video, VideoCategory, Preference, WatchingTime
+
+os.environ['DATABASE_URL'] = 'sqlite:///:memory:' 
+
+@pytest.fixture(autouse=True)
+def verify_sqlite(monkeypatch):
+    from config import app
+    assert app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite://')
 
 @pytest.fixture
 def app():
