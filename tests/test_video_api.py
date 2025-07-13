@@ -46,7 +46,16 @@ def test_get_videos_api_invalid_categories(authenticated_client, app):
 def test_videos_round2_excludes_watched(app, authenticated_client):
     """Test that round 2 videos API excludes videos watched in round 1"""
     with app.app_context():
-        # First, create a watch time record for video 101 in round 1
+        # First, let's check if the video exists
+        video_to_test = Video.query.get(10101)
+        if not video_to_test:
+            pytest.skip("Test video 10101 does not exist in the database")
+            
+        # Check if the video is in the humor category
+        video_category = VideoCategory.query.get(video_to_test.category_id)
+        print(f"\nDebug: Video 10101 belongs to category: {video_category.name}")
+            
+        # Create a watch time record for video 10101 in round 1
         watch_time = WatchingTime(
             participant_number='10001',
             video_id=10101,
@@ -57,6 +66,14 @@ def test_videos_round2_excludes_watched(app, authenticated_client):
         db.session.add(watch_time)
         db.session.commit()
         
+        # Verify the watch time was recorded
+        watch_record = WatchingTime.query.filter_by(
+            participant_number='10001',
+            video_id=10101,
+            round_number=1
+        ).first()
+        assert watch_record is not None, "Watch time record was not created"
+        
         # Now request round 2 videos for the humor category
         response = authenticated_client.get('/api/videos_round2?categories=humor,food,travel')
         assert response.status_code == 200
@@ -64,9 +81,12 @@ def test_videos_round2_excludes_watched(app, authenticated_client):
         data = json.loads(response.data)
         assert 'videos' in data
         
-        # Check that video 101 is not in the results
+        # Debug info
+        print(f"\nDebug: Returned video IDs: {[v['id'] for v in data['videos']]}")
+        
+        # Check that video 10101 is not in the results
         video_ids = [v['id'] for v in data['videos']]
-        assert 101 not in video_ids
+        assert 10101 not in video_ids, f"Expected video 10101 to be excluded but found in results: {video_ids}"
 
 def test_videos_after_info_cocoons_round2(authenticated_client, app):
     """Test fetching videos after info cocoons in round 2"""

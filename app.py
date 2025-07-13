@@ -379,22 +379,28 @@ def get_videos_round2():
     if not participant_number or len(category_names) != 3:
         return jsonify({'error': 'Invalid request'}), 400
 
-    watched_subquery = db.session.query(Video.id).join(
-        WatchingTime, Video.id == WatchingTime.video_id
-    ).join(
-        VideoCategory, Video.category_id == VideoCategory.id
-    ).filter(
+    # Get the list of watched video IDs first
+    watched_video_ids = db.session.query(WatchingTime.video_id).filter(
         WatchingTime.participant_number == participant_number,
-        WatchingTime.round_number == 1,
-        VideoCategory.name.in_(category_names)
-    ).subquery()
-
+        WatchingTime.round_number == 1
+    ).all()
+    
+    # Extract IDs from result tuples
+    watched_ids = [row[0] for row in watched_video_ids]
+    
+    # Query available videos, excluding watched ones
     available_videos = db.session.query(Video, VideoCategory).join(
         VideoCategory, Video.category_id == VideoCategory.id
     ).filter(
-        VideoCategory.name.in_(category_names),
-        ~Video.id.in_(watched_subquery)
-    ).all()
+        VideoCategory.name.in_(category_names)
+    )
+    
+    if watched_ids:  # Only apply filter if there are watched videos
+        available_videos = available_videos.filter(
+            ~Video.id.in_(watched_ids)
+        )
+    
+    available_videos = available_videos.all()
 
     # Group by category and select one per category
     videos_by_category = {}
@@ -407,10 +413,17 @@ def get_videos_round2():
     for category_name in category_names:
         category_videos = videos_by_category.get(category_name, [])
         if not category_videos:
-            # Fallback: get any video from this category
-            fallback_videos = Video.query.join(VideoCategory).filter(
+            # Fallback: get any video from this category that hasn't been watched
+            fallback_query = Video.query.join(VideoCategory).filter(
                 VideoCategory.name == category_name
-            ).all()
+            )
+            
+            if watched_ids:
+                fallback_query = fallback_query.filter(
+                    ~Video.id.in_(watched_ids)
+                )
+                
+            fallback_videos = fallback_query.all()
             category_videos = fallback_videos
 
         if category_videos:
