@@ -112,7 +112,7 @@ def test_api_user_interaction_like(authenticated_client, app):
     # Check database record
     with app.app_context():
         interaction = VideoInteraction.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             action='like'
         ).first()
@@ -134,7 +134,7 @@ def test_api_user_interaction_dislike(authenticated_client, app):
     # Check database record
     with app.app_context():
         interaction = VideoInteraction.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             action='dislike'
         ).first()
@@ -143,7 +143,7 @@ def test_api_user_interaction_dislike(authenticated_client, app):
         
         # Verify that like was removed (if it existed)
         like = VideoInteraction.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             action='like'
         ).first()
@@ -165,7 +165,7 @@ def test_api_user_interaction_star(authenticated_client, app):
     # Check database record
     with app.app_context():
         interaction = VideoInteraction.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             action='star'
         ).first()
@@ -188,7 +188,7 @@ def test_api_user_interaction_comment(authenticated_client, app):
     # Check database record
     with app.app_context():
         interaction = VideoInteraction.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             action='comment'
         ).first()
@@ -219,7 +219,7 @@ def test_api_user_interaction_remove_actions(authenticated_client, app):
     # Check that it was removed from database
     with app.app_context():
         interaction = VideoInteraction.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10102,
             action='like'
         ).first()

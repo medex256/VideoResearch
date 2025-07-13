@@ -58,12 +58,12 @@ def test_record_watch_time_function(app):
     """Test the record_watch_time utility function directly"""
     with app.app_context():
         # New record with updated video ID
-        success, message = record_watch_time('1001', 10101, 10, 1, 10)
+        success, message = record_watch_time('10001', 10101, 10, 1, 10)
         assert success is True
         
         # Check record was created
         record = WatchingTime.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             round_number=1
         ).first()
@@ -73,12 +73,12 @@ def test_record_watch_time_function(app):
         assert record.percentage_watched == pytest.approx(22.22, 0.01)  # 10/45 * 100
         
         # Update existing record - use the same ID (10101)
-        success, message = record_watch_time('1001', 10101, 5, 1, 40)
+        success, message = record_watch_time('10001', 10101, 5, 1, 40)
         assert success is True
         
         # Check record was updated
         record = WatchingTime.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             round_number=1
         ).first()
@@ -92,5 +92,5 @@ def test_record_watch_time_function(app):
         assert success is False
         
         # Test with invalid video ID
-        success, message = record_watch_time('1001', 999999, 10, 1)
+        success, message = record_watch_time('10001', 999999, 10, 1)
         assert success is False

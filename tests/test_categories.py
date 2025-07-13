@@ -25,7 +25,7 @@ def test_submit_categories_success(app, authenticated_client):
     # Check database records
     with app.app_context():
         preferences = Preference.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             round_number=1
         ).all()
         
@@ -78,7 +78,7 @@ def test_submit_categories_round2(app, authenticated_client):
     # Check database records
     with app.app_context():
         preferences = Preference.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             round_number=2
         ).all()
         
@@ -98,7 +98,7 @@ def test_save_preferences_helper(app):
     with app.app_context():
         # Clear any existing round 2 preferences
         Preference.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             round_number=2
         ).delete()
         db.session.commit()
@@ -110,12 +110,12 @@ def test_save_preferences_helper(app):
             {'category_id': 4, 'rating': 5}
         ]
         
-        result = save_preferences('1001', 2, preferences_data)
+        result = save_preferences('10001', 2, preferences_data)
         assert result is True
         
         # Check database records
         preferences = Preference.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             round_number=2
         ).all()
         

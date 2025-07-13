@@ -25,7 +25,7 @@ def test_record_watch_time_new_record(app, authenticated_client):
     # Check database record
     with app.app_context():
         record = WatchingTime.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             round_number=1
         ).first()
@@ -61,7 +61,7 @@ def test_record_watch_time_update_existing(app, authenticated_client):
     # Check database record was updated properly
     with app.app_context():
         record = WatchingTime.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             round_number=1
         ).first()
@@ -87,7 +87,7 @@ def test_record_watch_time_info_video(app, authenticated_client):
     # Check database record
     with app.app_context():
         record = WatchingTime.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=19999,
             round_number=1
         ).first()
@@ -124,7 +124,7 @@ def test_record_watch_time_multiple_segments(app, authenticated_client):
     # Check database record - total should be 10 seconds
     with app.app_context():
         record = WatchingTime.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             video_id=10101,
             round_number=1
         ).first()

@@ -52,13 +52,14 @@ def runner(app):
 def authenticated_client(app, client):
     """Create a test client with an authenticated session"""
     with client.session_transaction() as sess:
-        sess['participant_number'] = '1001'
+        sess['participant_number'] = '10001'  # Use the same high test participant number
     return client
 
 def _setup_test_data():
     """Add basic test data to the database"""
-    # Add test participant
-    participant = Participant(participant_number='1001', group_number=1)
+    # Add test participant with a high ID number to avoid conflicts
+    test_participant_number = '10001'  # Using a high number for test participant
+    participant = Participant(participant_number=test_participant_number, group_number=1)
     db.session.add(participant)
     
     # Check if categories already exist and use them, otherwise create new ones with unique test IDs
@@ -102,9 +103,9 @@ def _setup_test_data():
     
     # Add test preferences
     preferences = [
-        Preference(participant_number='1001', round_number=1, category_id=category_map['humor'], rating=9),
-        Preference(participant_number='1001', round_number=1, category_id=category_map['food'], rating=7),
-        Preference(participant_number='1001', round_number=1, category_id=category_map['travel'], rating=5),
+        Preference(participant_number=test_participant_number, round_number=1, category_id=category_map['humor'], rating=9),
+        Preference(participant_number=test_participant_number, round_number=1, category_id=category_map['food'], rating=7),
+        Preference(participant_number=test_participant_number, round_number=1, category_id=category_map['travel'], rating=5),
     ]
     db.session.bulk_save_objects(preferences)
     

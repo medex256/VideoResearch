@@ -103,7 +103,7 @@ def test_category_selection_persistence(authenticated_client, app):
         
         # Get preferences from DB
         prefs = Preference.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             round_number=1
         ).all()
         
@@ -132,7 +132,7 @@ def test_category_preference_ratings(authenticated_client, app):
         
         # Verify in database
         prefs = Preference.query.filter_by(
-            participant_number='1001',
+            participant_number='10001',
             round_number=1
         ).all()
         
