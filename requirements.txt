@@ -15,3 +15,5 @@ pymysql
 pytest
 pytest-flask
 pytest-cov
+gunicorn
+
