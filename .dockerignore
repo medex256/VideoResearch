@@ -1,0 +1,25 @@
+# Git
+
+.git
+.gitignore
+
+# Python artifacts
+
+**pycache**/
+_.py[cod]
+_.pyo
+\*.env
+venv/
+.env
+
+# Data / media you load at runtime
+
+_.db
+_.sqlite
+static/videos/
+data/
+uploads/
+
+# Logs
+
+\*.log
