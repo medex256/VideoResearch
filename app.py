@@ -252,7 +252,6 @@ def get_videos():
     categories = request.args.get('categories')
     category_names = categories.split(',')
 
-    # Single query with JOIN - eliminates N+1 problem
     videos_query = db.session.query(Video, VideoCategory).join(
         VideoCategory, Video.category_id == VideoCategory.id
     ).filter(VideoCategory.name.in_(category_names)).all()
@@ -305,7 +304,6 @@ def coping_strategy():
         )
         db.session.add(new_strategy)
         # db_handler will handle the commit
-
         # Redirect based on strategy
         if chosen_strategy == 'watch_other':
             # Exclude previously chosen categories and let user pick again
@@ -317,7 +315,6 @@ def coping_strategy():
             return redirect(url_for('continue_same_categories'))    
 
     return render_template('coping_strategy.html')
-
 
 
 @app.route('/select_categories_round2', methods=['GET'])
@@ -382,7 +379,6 @@ def get_videos_round2():
     if not participant_number or len(category_names) != 3:
         return jsonify({'error': 'Invalid request'}), 400
 
-    # Single query to get all watched video IDs
     watched_subquery = db.session.query(Video.id).join(
         WatchingTime, Video.id == WatchingTime.video_id
     ).join(
@@ -393,7 +389,6 @@ def get_videos_round2():
         VideoCategory.name.in_(category_names)
     ).subquery()
 
-    # Single query to get available videos
     available_videos = db.session.query(Video, VideoCategory).join(
         VideoCategory, Video.category_id == VideoCategory.id
     ).filter(
@@ -435,7 +430,6 @@ def end_video_viewing_2():
     return redirect(url_for('end_study'))
 
 
-
 @app.route('/info_cocoons')
 @login_required_custom 
 def info_cocoons():
@@ -461,7 +455,6 @@ def continue_same_categories():
 
     category_ids = [pref.category_id for pref in prefs_round1]
     
-    # Single query to get all watched videos for all categories
     watched_videos_subquery = db.session.query(Video.id).join(
         WatchingTime, Video.id == WatchingTime.video_id
     ).filter(
@@ -470,7 +463,6 @@ def continue_same_categories():
         Video.category_id.in_(category_ids)
     ).subquery()
     
-    # Single query to get available videos for all categories
     available_videos = Video.query.filter(
         Video.category_id.in_(category_ids),
         ~Video.id.in_(watched_videos_subquery)
@@ -514,7 +506,7 @@ def select_categories_after_info_cocoons_round2():
         flash('未找到参与者信息。', 'danger')
         return redirect(url_for('show_intro', group_number=1))
     
-    # simply allow selection from all categories again if that's the requirement
+    # simply allow selection from all categories again 
     remaining_categories = VideoCategory.query.filter(VideoCategory.name != 'info').all()
     
     return render_template('select_categories_after_info_cocoons_round2.html', categories=remaining_categories)
