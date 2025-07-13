@@ -86,4 +86,4 @@ def update_videos_from_excel():
 
 if __name__ == "__main__":
     success = update_videos_from_excel()
-    sys.exit(0 if success else 1)
+    sys.exit(0 if success else 1) #trig
