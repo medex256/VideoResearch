@@ -2,7 +2,7 @@ name: Test & Deploy
 
 on:
   push:
-    branches: [main] # trig
+    branches: [main]
 
 jobs:
   test:
