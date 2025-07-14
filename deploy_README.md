@@ -23,12 +23,14 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
 ## 2. Local Development
 
 1. Clone the repo
+
    ```bash
    git clone https://github.com/your-org/VideoProject.git
    cd VideoProject/NewPortal
    ```
 
 2. Create and activate a virtual environment
+
    ```bash
    python -m venv venv
    # On Windows
@@ -38,11 +40,13 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    ```
 
 3. Install dependencies
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. Initialize the database (SQLite by default)
+
    ```bash
    flask db upgrade
    # To load sample data
@@ -52,6 +56,7 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    ```
 
 5. Run the development server
+
    ```bash
    flask run
    # Or with specific host/port
@@ -67,6 +72,7 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
 ### Building and Running Locally with Docker
 
 1. Build the Docker image:
+
    ```bash
    docker build -t videoapp .
    ```
@@ -79,19 +85,21 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
 ### Using Docker Compose
 
 1. Create a `.env` file with your environment variables:
+
    ```
    # For local testing with SQLite (optional)
    # DATABASE_URL=sqlite:////app/instance/mydatabase.db
-   
+
    # For production with MySQL
    DATABASE_URL=mysql+pymysql://username:password@your-rds-endpoint:3306/dbname
    SECRET_KEY=your-secure-secret-key
-   
+
    # Set to "true" only for initial setup or database reset
    # RUN_DB_INIT=true
    ```
 
 2. Run with Docker Compose:
+
    ```bash
    # Normal run (no data initialization)
    docker-compose up -d
@@ -112,11 +120,13 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
 ### First-time Setup
 
 1. Connect to your EC2 instance:
+
    ```bash
    ssh -i /path/to/your-key.pem ec2-user@your-ec2-ip
    ```
 
 2. Install Docker and Docker Compose on Amazon Linux 2023:
+
    ```bash
    # Update packages and install Docker
    sudo dnf update -y
@@ -124,7 +134,7 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    sudo systemctl enable docker
    sudo systemctl start docker
    sudo usermod -aG docker ec2-user
-   
+
    # Install Docker Compose v1
    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
@@ -132,6 +142,7 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    ```
 
 3. Clone the repository:
+
    ```bash
    mkdir -p /home/ec2-user/VideoResearch
    cd /home/ec2-user/VideoResearch
@@ -141,6 +152,7 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    ```
 
 4. Create the `.env` file:
+
    ```bash
    cat > .env << EOF
    DATABASE_URL=mysql+pymysql://username:password@your-rds-endpoint:3306/dbname
@@ -150,10 +162,11 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    ```
 
 5. Initial deployment with DB setup:
+
    ```bash
    # Make init-db.sh executable
    chmod +x scripts/init-db.sh
-   
+
    # Build and start with database initialization
    export RUN_DB_INIT=true
    docker-compose build
@@ -163,11 +176,13 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
 ### Creating a Systemd Service
 
 1. Create a systemd service file:
+
    ```bash
    sudo vim /etc/systemd/system/videoapp.service
    ```
 
 2. Add the following content:
+
    ```ini
    [Unit]
    Description=VideoResearch Application
@@ -187,6 +202,7 @@ We also provide a manual CI/CD “fresh‐start” workflow so you can re‐seed
    ```
 
 3. Enable and start the service:
+
    ```bash
    sudo systemctl enable videoapp
    sudo systemctl start videoapp
@@ -235,6 +251,7 @@ To configure:
 - Completely re-initializes the database with fresh data
 
 To use this workflow:
+
 1. Go to GitHub Actions tab
 2. Select "Fresh-Start DB Reseed" workflow
 3. Click "Run workflow"
@@ -247,11 +264,13 @@ To use this workflow:
 ### Docker Issues
 
 1. **OCI runtime error** ("executable file not found"):
+
    - Check that the Dockerfile is named correctly (case-sensitive)
    - Ensure gunicorn is in requirements.txt
    - Make sure scripts/init-db.sh has execute permissions
 
 2. **Database connectivity issues**:
+
    - Verify DATABASE_URL in .env file
    - Check security group allows traffic from EC2 to RDS
    - Test connection: `docker-compose exec web python -c "from app import db; print(db.engine.connect())"`
@@ -263,6 +282,7 @@ To use this workflow:
 ### Systemd Service Issues
 
 1. **Service fails to start**:
+
    - Check service status: `sudo systemctl status videoapp`
    - View logs: `sudo journalctl -u videoapp.service`
    - Verify paths in service file match actual Docker and docker-compose installations
@@ -307,12 +327,14 @@ docker-compose exec web sh -c 'mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_
 ## 8. Monitoring & Maintenance
 
 ### Checking Container Status
+
 ```bash
 docker-compose ps
 docker stats
 ```
 
 ### Viewing Logs
+
 ```bash
 # All logs
 docker-compose logs
@@ -325,6 +347,7 @@ docker-compose logs web
 ```
 
 ### Cleaning Up Docker Resources
+
 ```bash
 # Remove stopped containers
 docker-compose rm
