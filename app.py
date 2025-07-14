@@ -55,7 +55,7 @@ def home():
 
 @app.route('/intro/<int:group_number>')
 def show_intro(group_number):
-    if group_number < 0 or group_number > 8:
+    if group_number < 0 or group_number > 7:
         flash('无效组别编号。', 'danger')
         # Fallback to group_number=1 instead of "index"
         return redirect(url_for('show_intro', group_number=1))
@@ -64,9 +64,9 @@ def show_intro(group_number):
 
 @app.route('/initial_selection/<int:group_number>', methods=['GET', 'POST'])
 def initial_selection(group_number):
-    if group_number < 0 or group_number > 8:
+    if group_number < 0 or group_number > 7:
         flash('无效组别编号。', 'danger')
-        redirect(url_for('show_intro', group_number=1))
+        return redirect(url_for('show_intro', group_number=1))
     try:
         participant_number = generate_unique_participant_number()
     except ValueError as e:
