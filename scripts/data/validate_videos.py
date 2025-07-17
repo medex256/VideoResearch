@@ -4,7 +4,11 @@ import time
 import csv
 import re
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 from config import app
 from models import Video, db
 
