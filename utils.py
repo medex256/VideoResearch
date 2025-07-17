@@ -27,7 +27,7 @@ def get_route_with_participant_check(required_message='未找到参与者信息�
     participant_number = session.get('participant_number')
     if not participant_number:
         flash(required_message, 'danger')
-        return None, redirect(url_for('show_intro', group_number=1))
+        return None, redirect(url_for('main.show_intro', group_number=1))
     return participant_number, None
 
 def generate_unique_participant_number():
@@ -48,13 +48,13 @@ def get_participant_or_redirect():
     participant_number = session.get('participant_number')
     if not participant_number:
         flash('未找到参与者信息或会话已过期。', 'danger')
-        return None, redirect(url_for('show_intro', group_number=1))
+        return None, redirect(url_for('main.show_intro', group_number=1))
     
     participant = Participant.query.get(participant_number)
     if not participant:
         flash('参与者信息无效。', 'danger')
         session.pop('participant_number', None)  # Clean up bad session data
-        return None, redirect(url_for('show_intro', group_number=1))
+        return None, redirect(url_for('main.show_intro', group_number=1))
         
     return participant, None
 
@@ -113,6 +113,7 @@ def get_videos_for_categories(category_names, participant_number=None, exclude_w
         for video in selected_videos:
             videos_data.append({
                 'id': video.id,
+                'title': video.title,  # Add title field for backward compatibility
                 'link': video.url,
                 'category': category_name
             })
@@ -138,7 +139,7 @@ def db_handler(f):
                 flash('处理您的请求时发生数据库错误。请稍后再试。', 'danger')
                 # Redirect to a safe page, e.g., the last known good step
                 # This is a generic fallback
-                return redirect(url_for('select_categories'))
+                return redirect(url_for('main.select_categories'))
             # For API endpoints, return a JSON error
             return jsonify({'success': False, 'message': 'Database error'}), 500
     return decorated_function
@@ -297,7 +298,8 @@ def create_json_response(success=True, message="", data=None, status_code=200):
     """Create standardized JSON responses for API endpoints."""
     response_data = {
         'success': success,
-        'message': message
+        'message': message,
+        'status': 'success' if success else 'fail'  # Backward compatibility
     }
     if data is not None:
         response_data.update(data)

@@ -60,7 +60,7 @@
         initVideoPlayer({
             apiEndpoint: '/api/videos_round2',
             roundNumber: 2,
-            endpointUrl: "{{ url_for('end_video_viewing_2') }}",
+            endpointUrl: "{{ url_for('round2.end_video_viewing_2') }}",
             categories: {{ selected_categories | tojson }}
         });
     </script>

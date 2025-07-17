@@ -60,7 +60,7 @@ def test_round2_category_selection(authenticated_client, app):
             })
         
         # Then check round 2 selection page
-        response = authenticated_client.get('/select_categories_round2')
+        response = authenticated_client.get('/round2/select_categories')
         
         assert response.status_code == 200
         
@@ -84,7 +84,7 @@ def test_info_cocoons_flow(authenticated_client):
     # Instead, check for content that would be in the info_cocoons page
     assert b'info' in response.data
     assert b'cocoon' in response.data
-    assert b'select_categories_after_info_cocoons_round2' in response.data
+    assert b'/round2/select_categories_after_info_cocoons' in response.data
 
 def test_category_selection_persistence(authenticated_client, app):
     """Test that selected categories are correctly persisted across views"""
