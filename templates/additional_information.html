@@ -88,7 +88,7 @@
         
         .warning-title {
             color: #dc3545;
-            font-size: 1.25rem;
+            font-size: 1.6rem;
             font-weight: bold;
             margin-bottom: 1rem;
             display: flex;
@@ -97,7 +97,7 @@
         
         .warning-title i {
             margin-right: 10px;
-            font-size: 1.8rem;
+            font-size: 2.1rem;
         }
         
         /* Enhanced slider container styling */
@@ -309,14 +309,14 @@
         }
         
         .strategy-button .title {
-            font-size: 1.2rem;
+            font-size: 1.35rem;
             font-weight: bold;
             margin-bottom: 10px;
             color: #343a40;
         }
         
         .strategy-button .description {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             color: #6c757d;
         }
         
@@ -352,9 +352,9 @@
 
         /* adjust inner text if needed */
         .conclusion-box p {
-        margin: 0;
-        font-size: 1.3rem;
-        line-height: 1.6;
+            margin: 0;
+            font-size: 1.5rem;
+            line-height: 1.6;
         }
         
         @media (max-width: 768px) {
@@ -372,14 +372,10 @@
 <body>
 
 <div class="container mt-5 mb-5 group-{{ group_num }}">
-    <h2 class="text-center mb-5 page-title">额外提示</h2>
+    <h2 class="text-center mb-5 page-title">信息提示</h2>
 
     <!-- Always show the warning box -->
     {% if group_num == 0 %}
-      <div class="info-box neutral-box">
-        <h4 class="text-center mb-4">后续步骤说明</h4>
-        <p class="fs-5" style="white-space: pre-line; line-height: 1.8;">{{ message }}</p>
-      </div>
     {% else %}
       <div class="info-box">
         <div class="info-content">
@@ -388,11 +384,9 @@
             系统建议您观看多样化的视频内容
           </div>
           <!-- For all non-5 groups show full message here -->
-          {% if group_num != 5 %}
-            <p class="fs-5" style="white-space: pre-line; line-height: 1.7;">
-              {{ message|replace('【','')|replace('】','') }}
-            </p>
-          {% endif %}
+        <p class="fs-4" style="white-space: pre-line; line-height: 1.7;">
+            {{ message|replace('【','')|replace('】','') }}
+        </p> 
         </div>
       </div>
     {% endif %}
@@ -401,10 +395,10 @@
     <form id="infoForm" method="POST" class="mt-4">
         {% if group_num == 5 %}
         <div class="slider-container">
-            <label class="slider-label">请问您在多大程度上同意信息茧房可能对您造成危害:</label>
+            <label class="slider-label fs-4">请问您在多大程度上同意信息茧房可能对您造成危害:</label>
             <div class="slider-labels">
-                <span class="slider-min">完全不同意 (0)</span>
-                <span class="slider-max">(10) 完全同意</span>
+                <span class="slider-min fs-5">完全不同意 (0)</span>
+                <span class="slider-max fs-5">(10) 完全同意</span>
             </div>
             <div class="slider-track">
                 <div class="slider-progress" id="progress1" style="width: 50%;"></div>
@@ -416,10 +410,10 @@
         </div>
 
         <div class="slider-container">
-            <label class="slider-label">请问您在多大程度上同意观看多种类型的视频是保护自己远离信息茧房的有效手段:</label>
+            <label class="slider-label fs-4" >请问您在多大程度上同意观看多种类型的视频是保护自己远离信息茧房的有效手段:</label>
             <div class="slider-labels">
-                <span class="slider-min">完全不同意 (0)</span>
-                <span class="slider-max">(10) 完全同意</span>
+                <span class="slider-min fs-5">完全不同意 (0)</span>
+                <span class="slider-max fs-5">(10) 完全同意</span>
             </div>
             <div class="slider-track">
                 <div class="slider-progress" id="progress2" style="width: 50%;"></div>
@@ -442,7 +436,7 @@
         <input type="hidden" name="strategy" id="strategyInput" value="">
         
         <div class="mt-5">
-            <h4 class="text-center mb-4">请选择您如何继续：</h4>
+            <h4 class="text-center mb-4 fs-3">请选择您如何继续：</h4>
             
             <div class="strategy-buttons">
                 <!-- Watch diverse videos option -->
