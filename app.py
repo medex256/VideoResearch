@@ -41,7 +41,7 @@ def login_required_custom(f):
 def generate_unique_participant_number():
     MAX_ATTEMPTS = 1000
     for _ in range(MAX_ATTEMPTS):
-        number = str(random.randint(1000, 99999)).zfill(5)
+        number = str(random.randint(1000, 9999)).zfill(5)
         if not Participant.query.get(number):
             return number
     raise ValueError("无法生成唯一的参与者编号。请稍后再试。")
@@ -71,7 +71,7 @@ def initial_selection(group_number):
         participant_number = generate_unique_participant_number()
     except ValueError as e:
         flash(str(e), 'danger')
-        redirect(url_for('show_intro', group_number=1))
+        return redirect(url_for('show_intro', group_number=1))
 
     participant = Participant(participant_number=participant_number, group_number=group_number)
     db.session.add(participant)
