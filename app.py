@@ -39,7 +39,7 @@ def login_required_custom(f):
 
 
 def generate_unique_participant_number():
-    MAX_ATTEMPTS = 100
+    MAX_ATTEMPTS = 1000
     for _ in range(MAX_ATTEMPTS):
         number = str(random.randint(1000, 9999)).zfill(4)
         if not Participant.query.get(number):
