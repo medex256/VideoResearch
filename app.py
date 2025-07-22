@@ -39,9 +39,9 @@ def login_required_custom(f):
 
 
 def generate_unique_participant_number():
-    MAX_ATTEMPTS = 1000
+    MAX_ATTEMPTS = 100
     for _ in range(MAX_ATTEMPTS):
-        number = str(random.randint(1000, 9999)).zfill(5)
+        number = str(random.randint(1000, 9999)).zfill(4)
         if not Participant.query.get(number):
             return number
     raise ValueError("无法生成唯一的参与者编号。请稍后再试。")
