@@ -9,8 +9,9 @@ import uuid
 
 
 class Participant(UserMixin, db.Model):
-    participant_number = db.Column(db.String(4), primary_key=True, default=lambda: '0000')
+    participant_number = db.Column(db.String(5), primary_key=True, default=lambda: '00000')
     group_number = db.Column(db.Integer, nullable=False)  # Assigned group (1-7)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     # Relationships
     preferences = db.relationship('Preference', backref='participant', lazy=True)
     interactions = db.relationship('VideoInteraction', backref='participant', lazy=True)
