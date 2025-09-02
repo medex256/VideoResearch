@@ -31,10 +31,10 @@ def get_route_with_participant_check(required_message='未找到参与者信息�
     return participant_number, None
 
 def generate_unique_participant_number():
-    """Generates a unique 4-digit participant number."""
-    MAX_ATTEMPTS = 100
+    """Generates a unique 5-digit participant number."""
+    MAX_ATTEMPTS = 500
     for _ in range(MAX_ATTEMPTS):
-        number = str(random.randint(1000, 9999)).zfill(4)
+        number = str(random.randint(10000, 99999)).zfill(5)
         if not Participant.query.get(number):
             return number
     raise ValueError("无法生成唯一的参与者编号。请稍后再试。")
