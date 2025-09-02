@@ -73,51 +73,76 @@ def participant_required(f):
         return f(participant, *args, **kwargs)
     return decorated_function
 
+def _query_videos_with_categories(category_names):
+    """Fetch all (Video, VideoCategory) tuples for the given category names."""
+    return db.session.query(Video, VideoCategory).join(
+        VideoCategory, Video.category_id == VideoCategory.id
+    ).filter(VideoCategory.name.in_(category_names)).all()
+
+def _get_watched_video_ids(participant_number, round_number):
+    """Return a set of video IDs watched by the participant in the given round."""
+    watched_video_ids = db.session.query(WatchingTime.video_id).filter(
+        WatchingTime.participant_number == participant_number,
+        WatchingTime.round_number == round_number
+    ).all()
+    return set(row[0] for row in watched_video_ids)
+
+def _exclude_watched_videos(videos_with_categories, watched_ids):
+    """Filter out videos whose IDs are in watched_ids."""
+    return [
+        (video, category)
+        for video, category in videos_with_categories
+        if video.id not in watched_ids
+    ]
+
+def _group_videos_by_category(videos_with_categories):
+    """Group videos by category name."""
+    videos_by_category = {}
+    for video, category in videos_with_categories:
+        videos_by_category.setdefault(category.name, []).append(video)
+    return videos_by_category
+
+def _limit_videos_per_category(videos_by_category, category_names, limit_per_category):
+    """For each category, select up to limit_per_category videos (randomly if needed)."""
+    result = {}
+    for category_name in category_names:
+        videos = videos_by_category.get(category_name, [])
+        if limit_per_category:
+            selected = random.sample(videos, min(limit_per_category, len(videos)))
+        else:
+            selected = videos
+        result[category_name] = selected
+    return result
+
 def get_videos_for_categories(category_names, participant_number=None, exclude_watched_round=None, limit_per_category=None):
     """
     Fetches videos for a given list of category names, with options to exclude watched videos and limit results.
     """
-    videos_query = db.session.query(Video, VideoCategory).join(
-        VideoCategory, Video.category_id == VideoCategory.id
-    ).filter(VideoCategory.name.in_(category_names))
+    # Step 1: Query all videos for the categories
+    videos_with_categories = _query_videos_with_categories(category_names)
 
-    # If requested, exclude videos the participant has already watched in a specific round
+    # Step 2: Exclude watched videos if needed
     if participant_number and exclude_watched_round:
-        watched_video_ids = db.session.query(WatchingTime.video_id).filter(
-            WatchingTime.participant_number == participant_number,
-            WatchingTime.round_number == exclude_watched_round
-        ).all()
-        watched_ids = [row[0] for row in watched_video_ids]
+        watched_ids = _get_watched_video_ids(participant_number, exclude_watched_round)
         if watched_ids:
-            videos_query = videos_query.filter(~Video.id.in_(watched_ids))
+            videos_with_categories = _exclude_watched_videos(videos_with_categories, watched_ids)
 
-    available_videos = videos_query.all()
+    # Step 3: Group by category
+    videos_by_category = _group_videos_by_category(videos_with_categories)
 
-    # Group videos by category to handle limits correctly
-    videos_by_category = {}
-    for video, category in available_videos:
-        if category.name not in videos_by_category:
-            videos_by_category[category.name] = []
-        videos_by_category[category.name].append(video)
+    # Step 4: Limit per category if needed
+    limited_videos = _limit_videos_per_category(videos_by_category, category_names, limit_per_category)
 
-    # Select a limited number of videos from each category if a limit is set
+    # Step 5: Assemble result
     videos_data = []
     for category_name in category_names:
-        category_videos = videos_by_category.get(category_name, [])
-        
-        if limit_per_category:
-            selected_videos = random.sample(category_videos, min(limit_per_category, len(category_videos)))
-        else:
-            selected_videos = category_videos  # Take all available if no limit
-
-        for video in selected_videos:
+        for video in limited_videos.get(category_name, []):
             videos_data.append({
                 'id': video.id,
                 'title': video.title,  # Add title field for backward compatibility
                 'link': video.url,
                 'category': category_name
             })
-    
     random.shuffle(videos_data)
     return videos_data
 
