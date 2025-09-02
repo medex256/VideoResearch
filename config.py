@@ -98,12 +98,19 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = APP_CONFIG.secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONFIG.uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_size': DB_CONFIG.pool_size,
-    'pool_timeout': DB_CONFIG.pool_timeout,
-    'pool_recycle': DB_CONFIG.pool_recycle,
-    'echo': DB_CONFIG.echo
-}
+
+# Only set connection pooling options if not using SQLite
+if not DB_CONFIG.uri.startswith('sqlite'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_size': DB_CONFIG.pool_size,
+        'pool_timeout': DB_CONFIG.pool_timeout,
+        'pool_recycle': DB_CONFIG.pool_recycle,
+        'echo': DB_CONFIG.echo
+    }
+else:
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'echo': DB_CONFIG.echo
+    }
 
 # Database instance
 db = SQLAlchemy(app)
