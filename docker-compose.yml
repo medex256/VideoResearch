@@ -10,7 +10,7 @@ services:
 
   migrator:
     build: .
-    entrypoint: ["./scripts/init-db.sh"]
+    entrypoint: ["./scripts/deployment/init-db.sh"]
     environment:
       DATABASE_URL: "${DATABASE_URL}"
       SECRET_KEY: "${SECRET_KEY}"
