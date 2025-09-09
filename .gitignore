@@ -7,3 +7,7 @@ __pycache__
 *.pyc
 locustfile.py
 misc/
+
+#Videos are served from S3+Cloudfront
+static/videos/
+static/videos/*
