@@ -14,7 +14,6 @@
         /* Enhanced info box for more persuasive appearance */
         .info-box {
             background: #fff;
-            border-left: 5px solid #dc3545;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -45,51 +44,10 @@
             position: relative;
             z-index: 1;
         }
-
-        /* Neutral box for control group */
-        .neutral-box {
-            background: #fff;
-            border-left: 5px solid #6c757d !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
-            position: relative;
-        }
-
-        .neutral-box:before {
-            display: none !important; /* Remove the warning symbol */
-        }
-
-        .neutral-box h4 {
-            color: #212529;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .neutral-box h4:after {
-            content: '';
-            position: absolute;
-            width: 60px;
-            height: 4px;
-            background: #6c757d;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-
-        /* Override the red warning styling for control group */
-        .group-0 .info-box {
-            border-left: 5px solid #6c757d;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .group-0 .info-box:before {
-            display: none; /* Remove the warning symbol */
-        }
         
         .warning-title {
             color: #dc3545;
-            font-size: 1.25rem;
-            font-weight: bold;
+            font-size: 1.6rem;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
@@ -97,7 +55,35 @@
         
         .warning-title i {
             margin-right: 10px;
-            font-size: 1.8rem;
+            font-size: 2.1rem;
+        }
+
+        /* Bold text styling */
+        .bold-text {
+            font-weight: 700;
+            color: #2d3436;
+        }
+
+        /* Persuasion technique highlighting backgrounds */
+        .persuasion-highlight {
+            background: #fff8e1;
+            padding: 20px 24px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffa726;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /* Base message styling */
+        .base-message {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Persuasion content styling */
+        .persuasion-content {
+            font-size: 1.4rem;
+            line-height: 1.7;
         }
         
         /* Enhanced slider container styling */
@@ -117,7 +103,6 @@
         }
         
         .slider-label {
-            font-weight: bold;
             margin-bottom: 1.5rem;
             font-size: 1.1rem;
             color: #212529;
@@ -309,14 +294,14 @@
         }
         
         .strategy-button .title {
-            font-size: 1.2rem;
+            font-size: 1.35rem;
             font-weight: bold;
             margin-bottom: 10px;
             color: #343a40;
         }
         
         .strategy-button .description {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             color: #6c757d;
         }
         
@@ -342,21 +327,19 @@
         }
         
         .conclusion-box {
-            background: #fff;
-            border-left: 5px solid #ff8000;
-            padding: 30px;
+            background: #fff8e1;
+            padding: 20px 24px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            margin: 2.5rem 0;
-            }
-
-        /* adjust inner text if needed */
-        .conclusion-box p {
-        margin: 0;
-        font-size: 1.3rem;
-        line-height: 1.6;
+            margin: 15px 0;
+            border-left: 4px solid #ffa726;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
+
+        .conclusion-box p {
+            margin: 0;
+            font-size: 1.4rem;
+            line-height: 1.7;
+        }
         @media (max-width: 768px) {
             .strategy-buttons {
                 flex-direction: column;
@@ -372,26 +355,53 @@
 <body>
 
 <div class="container mt-5 mb-5 group-{{ group_num }}">
-    <h2 class="text-center mb-5 page-title">额外提示</h2>
+    <h2 class="text-center mb-5 page-title">信息提示</h2>
 
-    <!-- Always show the warning box -->
-    {% if group_num == 0 %}
-      <div class="info-box neutral-box">
-        <h4 class="text-center mb-4">后续步骤说明</h4>
-        <p class="fs-5" style="white-space: pre-line; line-height: 1.8;">{{ message }}</p>
-      </div>
-    {% else %}
+    <!-- Always show the warning box for groups 1-7 -->
+    {% if group_num >= 1 and group_num <= 7 %}
       <div class="info-box">
         <div class="info-content">
           <div class="warning-title">
             <i class="material-icons-outlined">warning</i>
             系统建议您观看多样化的视频内容
           </div>
-          <!-- For all non-5 groups show full message here -->
-          {% if group_num != 5 %}
-            <p class="fs-5" style="white-space: pre-line; line-height: 1.7;">
-              {{ message|replace('【','')|replace('】','') }}
-            </p>
+          
+          <!-- Base warning message (same for all groups) -->
+          <div class="base-message">
+            <span >系统检测到您已浏览了大量同质化的视频内容, 有一定概率陷入信息茧房</span> 
+          </div>
+          
+          <!-- Group-specific persuasion content with highlighting -->
+          {% if group_num == 2 %}
+            <div class="persuasion-highlight">
+              <div class="persuasion-content">
+                不如尝试探索更多有意思的内容？多样化内容<span class="bold-text">正适合你这样对世界充满好奇心的人</span><br>看一看以前不常看的视频类型，<span class="bold-text">去发掘自己有趣的另一面吧！</span>
+              </div>
+            </div>
+          {% elif group_num == 3 %}
+            <div class="persuasion-highlight">
+              <div class="persuasion-content">
+                我们为你准备了更多样化的视频类型来<span class="bold-text">帮助你降低陷入信息茧房的可能，</span><br>看一看以前不常看的视频类型，<span class="bold-text">协助我们</span>共同远离信息茧房吧！
+              </div>
+            </div>
+          {% elif group_num == 4 %}
+            <div class="persuasion-highlight">
+              <div class="persuasion-content">
+                <span class="bold-text">超过85%的用户</span>在得知信息茧房风险后，选择多看看不同类型的视频。<span class="bold-text"><br>你也可以像他们一样，</span>试试以前不常看的视频类型吧！
+              </div>
+            </div>
+          {% elif group_num == 6 %}
+            <div class="persuasion-highlight">
+              <div class="persuasion-content">
+                <span class="bold-text">哈佛大学教授，著名行为经济学家Sunstein</span>明确指出了信息茧房对个人身心健康的危害，<br>并建议大家浏览多种类型的视频。<span class="bold-text">现在就听从专家的建议</span>，试试以前不常看的视频类型吧！
+              </div>
+            </div>
+          {% elif group_num == 7 %}
+            <div class="persuasion-highlight">
+              <div class="persuasion-content">
+                丰富精彩的内容正慢慢被排除在外，<span class="bold-text">逃离信息茧房的机会转瞬即逝哦<br>快抓住机会</span>，看看以前不常看的视频类型，<span class="bold-text">别错过拓宽视野的好时机！</span>
+              </div>
+            </div>
           {% endif %}
         </div>
       </div>
@@ -401,10 +411,10 @@
     <form id="infoForm" method="POST" class="mt-4">
         {% if group_num == 5 %}
         <div class="slider-container">
-            <label class="slider-label">请问您在多大程度上同意信息茧房可能对您造成危害:</label>
+            <label class="slider-label fs-4">请问您在多大程度上同意信息茧房可能对您造成危害?</label>
             <div class="slider-labels">
-                <span class="slider-min">完全不同意 (0)</span>
-                <span class="slider-max">(10) 完全同意</span>
+                <span class="slider-min fs-6">非常不同意 (0)</span>
+                <span class="slider-max fs-6">(10) 非常同意</span>
             </div>
             <div class="slider-track">
                 <div class="slider-progress" id="progress1" style="width: 50%;"></div>
@@ -416,10 +426,10 @@
         </div>
 
         <div class="slider-container">
-            <label class="slider-label">请问您在多大程度上同意观看多种类型的视频是保护自己远离信息茧房的有效手段:</label>
+            <label class="slider-label fs-4">请问您在多大程度上同意观看多种类型的视频可以保护自己远离信息茧房？</label>
             <div class="slider-labels">
-                <span class="slider-min">完全不同意 (0)</span>
-                <span class="slider-max">(10) 完全同意</span>
+                <span class="slider-min fs-6">非常不同意 (0)</span>
+                <span class="slider-max fs-6">(10) 非常同意</span>
             </div>
             <div class="slider-track">
                 <div class="slider-progress" id="progress2" style="width: 50%;"></div>
@@ -429,20 +439,20 @@
                 <div class="slider-value" id="q2Value">5</div>
             </div>
         </div>
+        
         <div class="conclusion-box mt-4">
-          <p class="mb-0 fw-bold">
-            您的选择表明您对于信息茧房及其缓解策略有较为清晰的认知。
-            基于您的选择，我们建议您观看多样化的视频内容。
+          <p class="mb-0">
+            <span class="bold-text">既然你认同信息茧房的危害</span>，不妨在实际行动上做出小小的改变<br>
+            现在就试试以前不常看的视频类型，<span class="bold-text">向多元化迈出第一步吧！</span>
           </p>
         </div>
-
         {% endif %}
 
         <input type="hidden" name="timeSpent" id="timeSpentInput" value="0">
         <input type="hidden" name="strategy" id="strategyInput" value="">
         
         <div class="mt-5">
-            <h4 class="text-center mb-4">请选择您如何继续：</h4>
+            <h4 class="text-center mb-4 fs-3">请选择您如何继续：</h4>
             
             <div class="strategy-buttons">
                 <!-- Watch diverse videos option -->
@@ -480,8 +490,20 @@
     // Track time spent on page
     let startTime = Date.now();
     const form = document.getElementById('infoForm');
+    let canSubmit = false;
+    
+    // Enable submission after 15 seconds
+    setTimeout(() => {
+        canSubmit = true;
+    }, 15000); // 15 seconds
     
     function submitForm(strategy) {
+        // Check if 15 seconds have passed
+        if (!canSubmit) {
+            alert('请等待15秒后再继续操作，以确保您充分阅读了提示信息。');
+            return;
+        }
+        
         const endTime = Date.now();
         const duration = ((endTime - startTime) / 1000).toFixed(2);
         document.getElementById('timeSpentInput').value = duration;
