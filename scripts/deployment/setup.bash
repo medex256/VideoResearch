@@ -15,7 +15,7 @@ python -c "from config import app, db; app.app_context().push(); db.create_all()
 # Load videos from Excel
 echo "Loading videos to database..."
 if [ -f "Douyin_videos.xlsx" ]; then
-    python load_videos.py
+    python scripts/data/load_videos.py
     echo "Videos loaded successfully"
 else
     echo "Warning: Douyin_videos.xlsx not found"
@@ -24,7 +24,7 @@ fi
 # Update videos if replacement file exists
 echo "Checking for video updates..."
 if [ -f "Videos_replace.xlsx" ]; then
-    python update_video.py
+    python scripts/data/update_video.py
     echo "Video updates applied"
 else
     echo "No video updates file found"
@@ -32,7 +32,7 @@ fi
 
 # Translate categories
 echo "Translating categories..."
-python translate_categories.py
+python scripts/data/translate_categories.py
 
 # Add info video
 echo "Adding info video..."

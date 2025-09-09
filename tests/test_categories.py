@@ -62,7 +62,7 @@ def test_submit_categories_validation(authenticated_client):
 def test_submit_categories_round2(app, authenticated_client):
     """Test round 2 category submission"""
     # Submit categories for round 2 using the updated category IDs
-    response = authenticated_client.post('/submit_categories_round2', data={
+    response = authenticated_client.post('/round2/submit_categories', data={
         'rating_10001': '8',  # humor - already selected in round 1
         'rating_10002': '6',  # food - already selected in round 1
         'rating_10004': '4',  # education - not selected in round 1

@@ -1,5 +1,9 @@
 # load_videos.py
 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 from config import app, db
 from models import Video, VideoCategory
 import pandas as pd
