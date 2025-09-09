@@ -5,6 +5,9 @@ This is the main application entry point with clean separation of concerns.
 from flask_login import LoginManager
 from config import app, db
 from models import Participant
+from flask_migrate import Migrate
+
+migrate = Migrate(app, db)
 
 # Import blueprints
 from blueprints.main import main_bp

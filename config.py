@@ -61,7 +61,7 @@ class Config:
             )
         else:  # development
             return DatabaseConfig(
-                uri=os.environ.get('DEV_DATABASE_URL', 'sqlite:///app.db'),
+                uri=os.environ.get('DEV_DATABASE_URL', 'sqlite:///mydatabase.db'),
                 echo=True
             )
     
