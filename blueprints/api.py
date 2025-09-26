@@ -94,7 +94,7 @@ def get_videos(participant):
         return jsonify({'error': 'Categories parameter is required'}), 400
     
     category_names = categories.split(',')
-    videos_data = get_videos_for_categories(category_names, limit_per_category=5)
+    videos_data = get_videos_for_categories(category_names, limit_per_category=3)
     
     return jsonify({'videos': videos_data})
 
