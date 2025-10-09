@@ -288,23 +288,26 @@
 <div class="container mt-5 mb-5 group-{{ group_num }}">
     <h2 class="text-center mb-5 page-title">信息提示</h2>
 
-    <!-- Always show the warning box for groups 1-7 -->
-    {% if group_num >= 1 and group_num <= 7 %}
+    <!-- Group 1: Control group with warning -->
+    {% if group_num == 1 %}
       <div class="info-box">
         <div class="info-content">
-
-          {% if group_num == 1 %}
           <div class="warning-title">
             <i class="material-icons-outlined">warning</i>
             系统建议您观看多样化的视频内容
           </div>
           
           <div class="base-message">
-            <span >系统检测到您已浏览了大量同质化的视频内容, 有一定概率陷入信息茧房</span> 
+            <span>系统检测到您已浏览了大量同质化的视频内容, 有一定概率陷入信息茧房</span> 
           </div>
-          {% endif %}
-          
-          <!-- Group-specific persuasion content with highlighting -->
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Groups 2, 3, 4, 6, 7: Persuasion messages -->
+    {% if group_num in [2, 3, 4, 6, 7] %}
+      <div class="info-box">
+        <div class="info-content">
           {% if group_num == 2 %}
             <div class="persuasion-highlight">
               <div class="persuasion-content">
