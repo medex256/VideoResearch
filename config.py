@@ -59,10 +59,17 @@ class Config:
                 echo=False
             )
         else:
-            # Development: Use SQLite fallback
-            print("[CONFIG] No DATABASE_URL found, using SQLite for development")
+            # Development: Use SQLite fallback with absolute path
+            base_dir = os.path.abspath(os.path.dirname(__file__))
+            instance_path = os.path.join(base_dir, 'instance')
+            db_path = os.path.join(instance_path, 'mydatabase.db')
+            
+            # Ensure instance folder exists
+            os.makedirs(instance_path, exist_ok=True)
+            
+            print(f"[CONFIG] Using SQLite at: {db_path}")
             return DatabaseConfig(
-                uri='sqlite:///instance/mydatabase.db',
+                uri=f'sqlite:///{db_path}',
                 echo=True
             )
     
