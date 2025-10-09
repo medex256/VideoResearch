@@ -234,76 +234,7 @@
             box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
         }
         
-        /* Strategy buttons styles */
-        .strategy-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 40px;
-        }
-        
-        .strategy-button {
-            flex: 1;
-            min-width: 200px;
-            max-width: 300px;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            background-color: white;
-            border: 2px solid #dee2e6;
-            cursor: pointer;
-        }
-        
-        .strategy-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border-color: #adb5bd;
-        }
-        
-        .strategy-button .icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 15px;
-            color: white;
-        }
-        
-        .strategy-button .icon.bg-primary {
-            background: linear-gradient(135deg, #4e73df, #224abe);
-        }
-        
-        .strategy-button .icon.bg-info {
-            background: linear-gradient(135deg, #36b9cc, #258391);
-        }
-        
-        .strategy-button .icon.bg-secondary {
-            background: linear-gradient(135deg, #858796, #60616f);
-        }
-        
-        .strategy-button .icon i {
-            font-size: 2rem;
-        }
-        
-        .strategy-button .title {
-            font-size: 1.35rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #343a40;
-        }
-        
-        .strategy-button .description {
-            font-size: 1.1rem;
-            color: #6c757d;
-        }
+
         
         /* Enhanced page title */
         .page-title {
@@ -357,8 +288,8 @@
 <div class="container mt-5 mb-5 group-{{ group_num }}">
     <h2 class="text-center mb-5 page-title">信息提示</h2>
 
-    <!-- Always show the warning box for groups 1-7 -->
-    {% if group_num >= 1 and group_num <= 7 %}
+    <!-- Group 1: Control group with warning -->
+    {% if group_num == 1 %}
       <div class="info-box">
         <div class="info-content">
           <div class="warning-title">
@@ -366,12 +297,17 @@
             系统建议您观看多样化的视频内容
           </div>
           
-          <!-- Base warning message (same for all groups) -->
           <div class="base-message">
-            <span >系统检测到您已浏览了大量同质化的视频内容, 有一定概率陷入信息茧房</span> 
+            <span>系统检测到您已浏览了大量同质化的视频内容, 有一定概率陷入信息茧房</span> 
           </div>
-          
-          <!-- Group-specific persuasion content with highlighting -->
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Groups 2, 3, 4, 6, 7: Persuasion messages -->
+    {% if group_num in [2, 3, 4, 6, 7] %}
+      <div class="info-box">
+        <div class="info-content">
           {% if group_num == 2 %}
             <div class="persuasion-highlight">
               <div class="persuasion-content">
@@ -442,46 +378,16 @@
         
         <div class="conclusion-box mt-4">
           <p class="mb-0">
-            <span class="bold-text">既然你认同信息茧房的危害</span>，不妨在实际行动上做出小小的改变<br>
-            现在就试试以前不常看的视频类型，<span class="bold-text">向多元化迈出第一步吧！</span>
+            既然你认同信息茧房的危害，不妨在实际行动上做出小小的改变<br>
+            现在就试试以前不常看的视频类型，向多元化迈出第一步吧！
           </p>
         </div>
         {% endif %}
 
         <input type="hidden" name="timeSpent" id="timeSpentInput" value="0">
-        <input type="hidden" name="strategy" id="strategyInput" value="">
         
-        <div class="mt-5">
-            <h4 class="text-center mb-4 fs-3">请选择您如何继续：</h4>
-            
-            <div class="strategy-buttons">
-                <!-- Watch diverse videos option -->
-                <div class="strategy-button" onclick="submitForm('watch_other')">
-                    <div class="icon bg-primary">
-                        <i class="material-icons-outlined">diversity_3</i>
-                    </div>
-                    <div class="title">观看多样化视频</div>
-                    <div class="description">选择新的视频类别来拓展您的内容体验</div>
-                </div>
-                
-                <!-- Learn more about info cocoons -->
-                <div class="strategy-button" onclick="submitForm('learn_more')">
-                    <div class="icon bg-info">
-                        <i class="material-icons-outlined">school</i>
-                    </div>
-                    <div class="title">了解更多信息茧房</div>
-                    <div class="description">观看关于信息茧房风险与危害的科普视频</div>
-                </div>
-                
-                <!-- Watch same type videos -->
-                <div class="strategy-button" onclick="submitForm('watch_same')">
-                    <div class="icon bg-secondary">
-                        <i class="material-icons-outlined">repeat</i>
-                    </div>
-                    <div class="title">观看相同类型视频</div>
-                    <div class="description">继续观看您之前选择的视频类型</div>
-                </div>
-            </div>
+        <div class="mt-5 text-center">
+            <button type="submit" class="btn btn-primary btn-lg px-5">继续</button>
         </div>
     </form>
 </div>
@@ -495,32 +401,35 @@
     // Enable submission after 15 seconds
     setTimeout(() => {
         canSubmit = true;
+        document.querySelector('button[type="submit"]').disabled = false;
     }, 15000); // 15 seconds
     
-    function submitForm(strategy) {
-        // Check if 15 seconds have passed
+    // Disable submit button initially
+    document.querySelector('button[type="submit"]').disabled = true;
+    
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
         if (!canSubmit) {
+            e.preventDefault();
             alert('请等待15秒后再继续操作，以确保您充分阅读了提示信息。');
-            return;
+            return false;
         }
-        
-        const endTime = Date.now();
-        const duration = ((endTime - startTime) / 1000).toFixed(2);
-        document.getElementById('timeSpentInput').value = duration;
-        document.getElementById('strategyInput').value = strategy;
         
         {% if group_num == 5 %}
         // Validate sliders for group 5
         const q1Value = document.getElementById('q1').value;
         const q2Value = document.getElementById('q2').value;
         if (!q1Value || !q2Value) {
+            e.preventDefault();
             alert('请完成所有评分项再继续');
-            return;
+            return false;
         }
         {% endif %}
         
-        form.submit();
-    }
+        const endTime = Date.now();
+        const duration = ((endTime - startTime) / 1000).toFixed(2);
+        document.getElementById('timeSpentInput').value = duration;
+    });
 
     // Enhanced slider interaction
     if (document.getElementById('q1')) {
