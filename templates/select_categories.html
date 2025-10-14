@@ -5,10 +5,10 @@
 {% block title %}视频类型选择{% endblock %}
 
 {% block content %}
-    <h2 class="mb-4 text-center display-5">请在下列9种视频类型中选择您最想要观看的3类视频</h2>
+    <h2 class="mb-4 text-center display-5">请在下列15种视频类型中选择您最想要观看的3类视频</h2>
     <p class="text-center fs-4">
         通过拖动滑块对您喜爱的三类视频进行排序。<br>
-        一旦您选择的视频类型数量达到3，滑块将会自动锁定。若您想要改变您的选择，请点击“重置”按钮重新选择。<br>
+        一旦您选择的视频类型数量达到3，滑块将会自动锁定。若您想要改变您的选择，请点击"重置"按钮重新选择。<br>
         数值越高，该平台推荐某一类型视频的可能性越大。
     </p>
     <form method="POST" action="{{ url_for('main.submit_categories') }}">

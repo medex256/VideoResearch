@@ -304,8 +304,8 @@
       </div>
     {% endif %}
 
-    <!-- Groups 2, 3, 4, 6, 7: Persuasion messages -->
-    {% if group_num in [2, 3, 4, 6, 7] %}
+    <!-- Groups 2, 3, 4, 6, 7, 8, 9: Persuasion messages -->
+    {% if group_num in [2, 3, 4, 6, 7, 8, 9] %}
       <div class="info-box">
         <div class="info-content">
           {% if group_num == 2 %}
@@ -326,13 +326,13 @@
                 <span class="bold-text">超过85%的用户</span>在得知信息茧房风险后，选择多看看不同类型的视频。<span class="bold-text"><br>你也可以像他们一样，</span>试试以前不常看的视频类型吧！
               </div>
             </div>
-          {% elif group_num == 6 %}
+          {% elif group_num == 6 or group_num == 8 %}
             <div class="persuasion-highlight">
               <div class="persuasion-content">
                 <span class="bold-text">哈佛大学教授，著名行为经济学家Sunstein</span>明确指出了信息茧房对个人身心健康的危害，<br>并建议大家浏览多种类型的视频。<span class="bold-text">现在就听从专家的建议</span>，试试以前不常看的视频类型吧！
               </div>
             </div>
-          {% elif group_num == 7 %}
+          {% elif group_num == 7 or group_num == 9 %}
             <div class="persuasion-highlight">
               <div class="persuasion-content">
                 丰富精彩的内容正慢慢被排除在外，<span class="bold-text">逃离信息茧房的机会转瞬即逝哦<br>快抓住机会</span>，看看以前不常看的视频类型，<span class="bold-text">别错过拓宽视野的好时机！</span>
@@ -396,16 +396,44 @@
     // Track time spent on page
     let startTime = Date.now();
     const form = document.getElementById('infoForm');
+    const submitButton = document.querySelector('button[type="submit"]');
     let canSubmit = false;
+    const groupNum = {{ group_num }};
     
-    // Enable submission after 15 seconds
-    setTimeout(() => {
+    // Timer behavior based on group
+    if (groupNum === 8 || groupNum === 9) {
+        // Groups 8 & 9: No timer, button immediately enabled
         canSubmit = true;
-        document.querySelector('button[type="submit"]').disabled = false;
-    }, 15000); // 15 seconds
-    
-    // Disable submit button initially
-    document.querySelector('button[type="submit"]').disabled = true;
+        submitButton.disabled = false;
+        submitButton.textContent = '继续下一步';
+    } else if (groupNum === 6 || groupNum === 7) {
+        // Groups 6 & 7: Visible countdown timer
+        submitButton.disabled = true;
+        let remainingSeconds = 15;
+        submitButton.textContent = `阅读${remainingSeconds}秒后继续下一步`;
+        submitButton.style.backgroundColor = '#6c757d'; // Grey
+        
+        const countdownInterval = setInterval(() => {
+            remainingSeconds--;
+            if (remainingSeconds > 0) {
+                submitButton.textContent = `阅读${remainingSeconds}秒后继续下一步`;
+            } else {
+                clearInterval(countdownInterval);
+                canSubmit = true;
+                submitButton.disabled = false;
+                submitButton.textContent = '继续下一步';
+                submitButton.style.backgroundColor = '#007bff'; // Blue
+            }
+        }, 1000);
+    } else {
+        // Groups 1-5: Soft timer (no countdown shown)
+        submitButton.disabled = true;
+        
+        setTimeout(() => {
+            canSubmit = true;
+            submitButton.disabled = false;
+        }, 15000); // 15 seconds
+    }
     
     // Handle form submission
     form.addEventListener('submit', (e) => {

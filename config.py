@@ -37,7 +37,7 @@ class AppConfig:
     
     # Group number validation
     min_group_number: int = 0
-    max_group_number: int = 7
+    max_group_number: int = 9
 
 
 class Config:
