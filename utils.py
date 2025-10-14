@@ -310,7 +310,7 @@ def record_watch_time(participant_number, video_id, watch_duration, round_number
 
 def validate_group_number(group_number):
     """Validate group number is within acceptable range."""
-    return 0 <= group_number <= 7
+    return 0 <= group_number <= 9
 
 
 def get_categories_excluding_info():
