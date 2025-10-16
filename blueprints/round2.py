@@ -13,9 +13,9 @@ round2_bp = Blueprint('round2', __name__, url_prefix='/round2')
 @round2_bp.route('/select_categories', methods=['GET'])
 @participant_required
 def select_categories_round2(participant):
-    """Display round 2 category selection excluding round 1 choices."""
-    remaining_categories = ParticipantService.get_remaining_categories(participant.participant_number, 1)
-    return render_template('select_categories_round2.html', categories=remaining_categories)
+    """Display round 2 category selection with all 15 categories (same as round 1)."""
+    categories = get_categories_excluding_info()
+    return render_template('select_categories_round2.html', categories=categories)
 
 
 @round2_bp.route('/submit_categories', methods=['POST'])
